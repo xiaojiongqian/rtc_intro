@@ -1,12 +1,13 @@
-import type { Slide } from "../types";
+import type { InteractionCommand, Slide } from "../types";
 import { VisualRenderer } from "./VisualRenderer";
 
 type SlideFrameProps = {
+  interactionCommand: InteractionCommand;
   slide: Slide;
   total: number;
 };
 
-export function SlideFrame({ slide, total }: SlideFrameProps) {
+export function SlideFrame({ interactionCommand, slide, total }: SlideFrameProps) {
   return (
     <article className="slide-frame">
       <header className="slide-header">
@@ -31,12 +32,16 @@ export function SlideFrame({ slide, total }: SlideFrameProps) {
           ))}
         </section>
         <section className="visual-panel">
-          <VisualRenderer visual={slide.visual} />
+          <VisualRenderer
+            interactionCommand={interactionCommand}
+            key={slide.id}
+            visual={slide.visual}
+          />
         </section>
       </div>
 
       <footer className="slide-footer">
-        <span>RTC Core Theory</span>
+        <span>{slide.takeaway ?? "RTC Core Theory"}</span>
         <span>
           {slide.id} / {total}
         </span>
