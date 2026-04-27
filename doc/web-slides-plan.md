@@ -52,6 +52,7 @@
 
 ## 后续扩展
 
+- Slides 数据按章节放在 `src/data/sections/`：`intro.ts`、`fundamentals.ts`、`protocols.ts`、`architecture.ts`；`src/data/slides.ts` 只负责按课程顺序聚合导出。
 - 编解码部分可从第 24 页继续追加，沿用 `Slide` 数据契约和现有视觉组件。
 - 新增章节优先复用现有互动模式：场景判断、链路诊断、取舍投票、指标切换。
 - 若增加代码实验页，建议新增专用 `codeWalkthrough` 或 `statsDashboard` visual type，避免把代码截图塞进通用卡片。
