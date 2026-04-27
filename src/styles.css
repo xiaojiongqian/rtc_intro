@@ -2242,48 +2242,100 @@ h1 {
   line-height: 1.24;
 }
 
+.decision-board {
+  display: grid;
+  grid-template-columns: minmax(218px, 0.74fr) minmax(360px, 1.26fr);
+  gap: 10px;
+  align-items: stretch;
+}
+
+.decision-question {
+  display: grid;
+  align-content: center;
+  gap: 10px;
+  min-height: 0;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--tone, var(--signal)) 34%, var(--soft-border));
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--tone, var(--signal)) 8%, transparent), transparent 58%),
+    var(--soft-bg);
+}
+
+.decision-question span {
+  color: var(--tone);
+  font-size: 12px;
+  font-weight: 820;
+  line-height: 1.2;
+}
+
+.decision-question strong {
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1.18;
+}
+
+.decision-question p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.34;
+}
+
 .decision-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 9px;
 }
 
 .decision-grid button {
   display: grid;
-  gap: 7px;
-  min-height: 126px;
+  align-content: start;
+  gap: 5px;
+  min-height: 78px;
   padding: 12px;
+}
+
+.decision-grid button em {
+  color: var(--muted);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 760;
+  line-height: 1.16;
 }
 
 .score-bars {
   display: grid;
-  gap: 4px;
-  margin-top: 4px;
+  margin-top: 1px;
 }
 
 .score-bars i {
   display: block;
-  height: 5px;
+  height: 6px;
   border-radius: 99px;
   background: color-mix(in srgb, var(--tone) 36%, transparent);
 }
 
 .score-bars i.focus {
-  height: 7px;
   background: var(--tone);
 }
 
 .decision-inspector {
   display: grid;
   gap: 8px;
-  min-height: 112px;
+  min-height: 166px;
   padding: 14px;
 }
 
-.decision-inspector div {
+.decision-inspector-head {
   display: flex;
   justify-content: space-between;
   gap: 12px;
+}
+
+.decision-inspector-head div {
+  display: grid;
+  gap: 3px;
 }
 
 .decision-inspector strong {
@@ -2291,19 +2343,69 @@ h1 {
   font-size: 18px;
 }
 
-.decision-inspector span,
-.decision-inspector em {
+.decision-inspector-head span,
+.decision-inspector-head em {
   color: var(--muted);
   font-size: 13px;
   font-style: normal;
   line-height: 1.28;
 }
 
-.decision-inspector p {
+.decision-lens {
   margin: 0;
   color: var(--text);
   font-size: 15px;
   line-height: 1.34;
+}
+
+.decision-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.18fr;
+  gap: 9px;
+}
+
+.decision-columns section {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--soft-border);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--panel) 62%, transparent);
+}
+
+.decision-columns span {
+  display: block;
+  color: var(--tone);
+  font-size: 12px;
+  font-weight: 820;
+  line-height: 1.15;
+}
+
+.decision-columns ul {
+  display: grid;
+  gap: 4px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.decision-columns li,
+.decision-columns p,
+.decision-columns em {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+  line-height: 1.3;
+}
+
+.decision-columns p {
+  margin-top: 8px;
+  color: var(--text);
+}
+
+.decision-columns em {
+  display: block;
+  margin-top: 6px;
 }
 
 .chain-nodes {
@@ -2644,7 +2746,8 @@ input[type="range"] {
     grid-template-columns: 1fr;
   }
 
-  .secure-workspace {
+  .secure-workspace,
+  .decision-board {
     grid-template-columns: 1fr;
   }
 
@@ -2692,12 +2795,40 @@ input[type="range"] {
     display: none;
   }
 
+  .decision-question {
+    min-height: 132px;
+  }
+
 }
 
 @media (max-width: 620px) {
   .slide-frame {
     min-height: 860px;
     padding: 22px;
+  }
+
+  .deck-controls {
+    width: calc(100vw - 24px);
+    max-width: 100%;
+    gap: 6px;
+    overflow: hidden;
+  }
+
+  .deck-controls .icon-button {
+    flex: 0 0 auto;
+    width: 36px;
+    height: 36px;
+  }
+
+  .slide-dots {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .slide-dots::-webkit-scrollbar {
+    display: none;
   }
 
   .slide-header,
@@ -2753,6 +2884,10 @@ input[type="range"] {
 
   .sequence-message strong {
     max-width: 112px;
+  }
+
+  .decision-columns {
+    grid-template-columns: 1fr;
   }
 
   .rhythm-track {

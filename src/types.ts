@@ -254,12 +254,18 @@ export type ArchitectureDecisionData = {
   criteria: Array<{
     label: string;
     question: string;
+    facilitatorPrompt: string;
   }>;
   options: Array<{
     label: string;
     fit: string;
     rationale: string;
     risks: string;
+    strengths: string[];
+    weaknesses: string[];
+    bestFor: string;
+    avoidWhen: string;
+    lensNotes: string[];
     scores: number[];
     tone: "signal" | "protocol" | "warning" | "accent";
   }>;

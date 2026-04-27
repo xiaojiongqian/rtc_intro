@@ -1061,6 +1061,7 @@ export function ArchitectureDecision({
   const [activeCriterion, setActiveCriterion] = useState(0);
   const option = data.options[activeOption];
   const criterion = data.criteria[activeCriterion];
+  const lensNote = option.lensNotes[activeCriterion] ?? option.rationale;
 
   useEffect(() => {
     if (interactionCommand.tick === 0) return;
@@ -1080,40 +1081,73 @@ export function ArchitectureDecision({
   return (
     <div className="architecture-decision">
       <div className="decision-scenario">
-        <span>Scenario</span>
+        <span>课堂案例</span>
         <strong>{data.scenario}</strong>
       </div>
 
-      <div className="decision-grid">
-        {data.options.map((candidate, optionIndex) => (
-          <button
-            className={`${toneClass(candidate.tone)} ${optionIndex === activeOption ? "active" : ""}`}
-            key={candidate.label}
-            type="button"
-            onClick={() => setActiveOption(optionIndex)}
-          >
-            <strong>{candidate.label}</strong>
-            <span>{candidate.fit}</span>
-            <div className="score-bars">
-              {candidate.scores.map((score, scoreIndex) => (
-                <i
-                  className={scoreIndex === activeCriterion ? "focus" : ""}
-                  key={`${candidate.label}-${data.criteria[scoreIndex].label}`}
-                  style={{ width: `${score * 20}%` }}
-                />
-              ))}
-            </div>
-          </button>
-        ))}
+      <div className="decision-board">
+        <div className={`decision-question ${toneClass(option.tone)}`}>
+          <span>
+            启发问题 {activeCriterion + 1}/{data.criteria.length} · {criterion.label}
+          </span>
+          <strong>{criterion.question}</strong>
+          <p>{criterion.facilitatorPrompt}</p>
+        </div>
+
+        <div className="decision-grid">
+          {data.options.map((candidate, optionIndex) => (
+            <button
+              aria-pressed={optionIndex === activeOption}
+              className={`${toneClass(candidate.tone)} ${optionIndex === activeOption ? "active" : ""}`}
+              key={candidate.label}
+              type="button"
+              onClick={() => setActiveOption(optionIndex)}
+            >
+              <strong>{candidate.label}</strong>
+              <span>{candidate.fit}</span>
+              <em>
+                {data.criteria[activeCriterion].label} {candidate.scores[activeCriterion]}/5
+              </em>
+              <div className="score-bars" aria-hidden="true">
+                <i className="focus" style={{ width: `${candidate.scores[activeCriterion] * 20}%` }} />
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className={`decision-inspector ${toneClass(option.tone)}`}>
-        <div>
-          <strong>{option.label}</strong>
-          <span>{criterion.label}: {criterion.question}</span>
+        <div className="decision-inspector-head">
+          <div>
+            <strong>{option.label}</strong>
+            <span>{option.fit}</span>
+          </div>
+          <em>{criterion.label}: {criterion.question}</em>
         </div>
-        <p>{option.rationale}</p>
-        <em>{option.risks}</em>
+        <p className="decision-lens">{lensNote}</p>
+        <div className="decision-columns">
+          <section>
+            <span>优势</span>
+            <ul>
+              {option.strengths.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </section>
+          <section>
+            <span>短板</span>
+            <ul>
+              {option.weaknesses.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </section>
+          <section>
+            <span>适用场景</span>
+            <p>{option.bestFor}</p>
+            <em>{option.avoidWhen}</em>
+          </section>
+        </div>
       </div>
     </div>
   );
