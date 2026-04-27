@@ -1,5 +1,8 @@
 import type {
   ArchitectureDecisionData,
+  AudioProcessingData,
+  CodecOverviewData,
+  CodecTradeoffData,
   ConnectionTroubleshootingData,
   CourseRhythmData,
   HybridArchitectureData,
@@ -8,6 +11,7 @@ import type {
   JitterSyncData,
   LatencyBudgetData,
   LearningMapData,
+  LayeredEncodingData,
   MediaTopologyComparisonData,
   MeshArchitectureData,
   OfferAnswerData,
@@ -21,16 +25,21 @@ import type {
   SignalingBoundaryData,
   SfuArchitectureData,
   StudentPromptData,
+  VideoParametersData,
   VisualSpec,
 } from "../types";
 import {
   ArchitectureDecision,
+  AudioProcessing,
+  CodecOverview,
+  CodecTradeoff,
   ConnectionTroubleshooting,
   CourseRhythm,
   HybridArchitecture,
   IcePath,
   JitterSync,
   LatencyBudget,
+  LayeredEncoding,
   LearningMap,
   MediaTopologyComparison,
   MeshArchitecture,
@@ -45,6 +54,7 @@ import {
   SignalingBoundary,
   SfuArchitecture,
   StudentPrompt,
+  VideoParameters,
 } from "./visuals";
 
 type VisualRendererProps = {
@@ -170,6 +180,41 @@ export function VisualRenderer({ interactionCommand, visual }: VisualRendererPro
       return (
         <ArchitectureDecision
           data={visual.data as ArchitectureDecisionData}
+          interactionCommand={interactionCommand}
+        />
+      );
+    case "codecOverview":
+      return (
+        <CodecOverview
+          data={visual.data as CodecOverviewData}
+          interactionCommand={interactionCommand}
+        />
+      );
+    case "audioProcessing":
+      return (
+        <AudioProcessing
+          data={visual.data as AudioProcessingData}
+          interactionCommand={interactionCommand}
+        />
+      );
+    case "videoParameters":
+      return (
+        <VideoParameters
+          data={visual.data as VideoParametersData}
+          interactionCommand={interactionCommand}
+        />
+      );
+    case "layeredEncoding":
+      return (
+        <LayeredEncoding
+          data={visual.data as LayeredEncodingData}
+          interactionCommand={interactionCommand}
+        />
+      );
+    case "codecTradeoff":
+      return (
+        <CodecTradeoff
+          data={visual.data as CodecTradeoffData}
           interactionCommand={interactionCommand}
         />
       );

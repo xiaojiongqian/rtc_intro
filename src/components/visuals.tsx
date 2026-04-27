@@ -5,6 +5,7 @@ import {
   GitBranch,
   KeyRound,
   Layers3,
+  MousePointerClick,
   Network,
   RadioTower,
   Route,
@@ -14,6 +15,9 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import type {
   ArchitectureDecisionData,
+  AudioProcessingData,
+  CodecOverviewData,
+  CodecTradeoffData,
   ConnectionTroubleshootingData,
   CourseRhythmData,
   HybridArchitectureData,
@@ -21,6 +25,7 @@ import type {
   InteractionCommand,
   JitterSyncData,
   LatencyBudgetData,
+  LayeredEncodingData,
   LearningMapData,
   MediaTopologyComparisonData,
   MeshArchitectureData,
@@ -35,6 +40,7 @@ import type {
   SignalingBoundaryData,
   SfuArchitectureData,
   StudentPromptData,
+  VideoParametersData,
 } from "../types";
 
 const toneClass = (tone: string) => `tone-${tone}`;
@@ -1148,6 +1154,445 @@ export function ArchitectureDecision({
             <em>{option.avoidWhen}</em>
           </section>
         </div>
+      </div>
+    </div>
+  );
+}
+
+export function CodecOverview({
+  data,
+  interactionCommand: _interactionCommand,
+}: InteractiveVisualProps<CodecOverviewData>) {
+  const defaultCodecLabel = data.scenarios[0]?.preferredCodecs[0] ?? data.codecs[0]?.label ?? "";
+  const [selection, setSelection] = useState({
+    codecLabel: defaultCodecLabel,
+    scenarioIndex: 0,
+  });
+  const activeScenario = data.scenarios[selection.scenarioIndex] ?? data.scenarios[0];
+  const activeCodec =
+    data.codecs.find((codec) => codec.label === selection.codecLabel) ?? data.codecs[0];
+  const preferredSet = new Set(activeScenario.preferredCodecs);
+  const codecGroups = [
+    {
+      label: "互通底线",
+      note: "先保证能协商、能播放、能排障",
+      codecs: data.codecs.filter((codec) => codec.tier === "baseline"),
+    },
+    {
+      label: "增强策略",
+      note: "再为弱网、画质、分层能力付出代价",
+      codecs: data.codecs.filter((codec) => codec.tier === "enhancement"),
+    },
+  ];
+  const selectScenario = (index: number) => {
+    const nextScenario = data.scenarios[index];
+    setSelection({
+      codecLabel: nextScenario.preferredCodecs[0] ?? data.codecs[0]?.label ?? "",
+      scenarioIndex: index,
+    });
+  };
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      const isFormField =
+        target?.tagName === "INPUT" ||
+        target?.tagName === "TEXTAREA" ||
+        target?.isContentEditable;
+      if (isFormField) return;
+      if (event.key !== "ArrowDown" && event.key !== "ArrowUp" && event.key !== "Enter") return;
+
+      setSelection((current) => {
+        const currentScenario = data.scenarios[current.scenarioIndex] ?? data.scenarios[0];
+        if (event.key === "Enter") {
+          event.preventDefault();
+          event.stopPropagation();
+          const preferredCodecs =
+            currentScenario.preferredCodecs.length > 0
+              ? currentScenario.preferredCodecs
+              : [current.codecLabel || defaultCodecLabel];
+          const selectedIndex = preferredCodecs.indexOf(current.codecLabel);
+          return {
+            ...current,
+            codecLabel: preferredCodecs[wrap(selectedIndex + 1, preferredCodecs.length)] ?? current.codecLabel,
+          };
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+        const direction = event.key === "ArrowUp" ? -1 : 1;
+        const nextIndex = wrap(current.scenarioIndex + direction, data.scenarios.length);
+        const nextScenario = data.scenarios[nextIndex];
+        return {
+          codecLabel: nextScenario.preferredCodecs[0] ?? data.codecs[0]?.label ?? current.codecLabel,
+          scenarioIndex: nextIndex,
+        };
+      });
+    };
+
+    window.addEventListener("keydown", onKeyDown, { capture: true });
+    return () => window.removeEventListener("keydown", onKeyDown, { capture: true });
+  }, [data.codecs, data.scenarios, data.scenarios.length, defaultCodecLabel]);
+
+  return (
+    <div className="codec-overview">
+      <div className="codec-interaction-hint">
+        <MousePointerClick size={17} strokeWidth={1.8} />
+        <span>点击场景卡切换课堂情境，再点击编解码卡查看选型理由</span>
+        <em>键盘：↑↓ 切场景，Enter 切推荐编码</em>
+      </div>
+
+      <div className="codec-logic-flow">
+        {data.logicSteps.map((step, index) => (
+          <article className={toneClass(step.tone)} key={step.label}>
+            <span>{String(index + 1).padStart(2, "0")} · {step.label}</span>
+            <strong>{step.question}</strong>
+            <p>{step.detail}</p>
+          </article>
+        ))}
+      </div>
+
+      <div className="codec-scenario-strip">
+        {data.scenarios.map((scenario, index) => (
+          <button
+            className={`${toneClass(scenario.tone)} ${index === selection.scenarioIndex ? "active" : ""}`}
+            key={scenario.label}
+            type="button"
+            onClick={() => selectScenario(index)}
+          >
+            <strong>{scenario.label}</strong>
+            <span>{scenario.recommended}</span>
+            <em>点击选择</em>
+          </button>
+        ))}
+        </div>
+
+      <div className="codec-decision-layout">
+        <div className="codec-tier-groups">
+          {codecGroups.map((group) => (
+            <section className="codec-tier-group" key={group.label}>
+              <div className="codec-tier-title">
+                <strong>{group.label}</strong>
+                <span>{group.note}</span>
+              </div>
+              <div className="codec-overview-grid">
+                {group.codecs.map((codec) => {
+                  const preferred = preferredSet.has(codec.label);
+                  const selected = codec.label === activeCodec.label;
+                  return (
+                    <button
+                      className={`${toneClass(codec.tone)} ${preferred ? "preferred" : ""} ${selected ? "active" : ""}`}
+                      key={codec.label}
+                      type="button"
+                      onClick={() => setSelection((current) => ({ ...current, codecLabel: codec.label }))}
+                    >
+                      <div>
+                        <strong>{codec.label}</strong>
+                        <span>{codec.kind}</span>
+                      </div>
+                      <p>
+                        <em>{preferred ? "推荐" : codec.tier === "baseline" ? "底线" : "增强"}</em>
+                        {codec.role}
+                      </p>
+                      <span className="codec-primary-metric">
+                        {codec.metrics[0]?.label}: {codec.metrics[0]?.value}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          ))}
+        </div>
+
+        <aside
+          className={`codec-inspector ${toneClass(activeCodec.tone)}`}
+          aria-live="polite"
+        >
+          <span>当前场景：{activeScenario.label}</span>
+          <strong>{activeCodec.label} · {activeCodec.role}</strong>
+          <p>{activeCodec.decision}</p>
+          <div className="codec-metric-grid">
+            {activeCodec.metrics.map((metric) => (
+              <div key={metric.label}>
+                <span>{metric.label}</span>
+                <strong>{metric.value}</strong>
+                <small>{metric.note}</small>
+              </div>
+            ))}
+          </div>
+          <dl>
+            <div>
+              <dt>特点</dt>
+              <dd>{activeCodec.strength}</dd>
+            </div>
+            <div>
+              <dt>代价</dt>
+              <dd>{activeCodec.cost}</dd>
+            </div>
+          </dl>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+export function AudioProcessing({
+  data,
+  interactionCommand,
+}: InteractiveVisualProps<AudioProcessingData>) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const scenario = data.scenarios[activeIndex];
+
+  useEffect(() => {
+    if (interactionCommand.tick === 0) return;
+    setActiveIndex((value) => wrap(value + interactionCommand.direction, data.scenarios.length));
+  }, [data.scenarios.length, interactionCommand]);
+
+  return (
+    <div className="audio-processing">
+      <div className="audio-case-tabs">
+        {data.scenarios.map((item, index) => (
+          <button
+            className={`${index === activeIndex ? "active" : ""}`}
+            key={item.label}
+            type="button"
+            onClick={() => setActiveIndex(index)}
+          >
+            <strong>{item.label}</strong>
+            <span>{item.codec}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="audio-pipeline">
+        {scenario.stages.map((stage, index) => (
+          <article className={`${toneClass(stage.tone)} state-${stage.setting}`} key={stage.label}>
+            <span>{stage.label}</span>
+            <strong>
+              {stage.setting === "on" ? "ON" : stage.setting === "off" ? "OFF" : "CAREFUL"}
+            </strong>
+            <p>{stage.detail}</p>
+            {index < scenario.stages.length - 1 ? <i aria-hidden="true" /> : null}
+          </article>
+        ))}
+      </div>
+
+      <div className="audio-inspector">
+        <div>
+          <span>{scenario.capture}</span>
+          <strong>{scenario.prompt}</strong>
+        </div>
+        <p>{scenario.answer}</p>
+      </div>
+    </div>
+  );
+}
+
+export function VideoParameters({
+  data,
+  interactionCommand,
+}: InteractiveVisualProps<VideoParametersData>) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const current = data.cases[activeIndex];
+
+  useEffect(() => {
+    if (interactionCommand.tick === 0) return;
+    setActiveIndex((value) => wrap(value + interactionCommand.direction, data.cases.length));
+  }, [data.cases.length, interactionCommand]);
+
+  return (
+    <div className="video-parameters">
+      <div className="video-case-switcher">
+        {data.cases.map((item, index) => (
+          <button
+            className={index === activeIndex ? "active" : ""}
+            key={item.label}
+            type="button"
+            onClick={() => setActiveIndex(index)}
+          >
+            <strong>{item.label}</strong>
+            <span>{item.symptom}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="video-diagnostic">
+        <section>
+          <span>诊断</span>
+          <strong>{current.diagnosis}</strong>
+          <p>{current.recommendation}</p>
+        </section>
+        <div className="video-metrics">
+          {current.metrics.map((metric) => (
+            <div className={toneClass(metric.tone)} key={metric.label}>
+              <span>{metric.label}</span>
+              <strong>{metric.value}</strong>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="video-levers">
+        {current.levers.map((lever) => (
+          <article className={toneClass(lever.tone)} key={lever.label}>
+            <span>{lever.label}</span>
+            <strong>{lever.choice}</strong>
+            <p>{lever.impact}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function LayeredEncoding({
+  data,
+  interactionCommand,
+}: InteractiveVisualProps<LayeredEncodingData>) {
+  const [activeReceiver, setActiveReceiver] = useState(0);
+  const [activeMode, setActiveMode] = useState(0);
+  const mode = data.modes[activeMode];
+  const receiver = data.receivers[activeReceiver];
+
+  useEffect(() => {
+    if (interactionCommand.tick === 0) return;
+    if (interactionCommand.action === "activate") {
+      setActiveMode((value) => wrap(value + 1, data.modes.length));
+      return;
+    }
+    setActiveReceiver((value) => wrap(value + interactionCommand.direction, data.receivers.length));
+  }, [
+    data.modes.length,
+    data.receivers.length,
+    interactionCommand.action,
+    interactionCommand.direction,
+    interactionCommand.tick,
+  ]);
+
+  return (
+    <div className="layered-encoding">
+      <div className="layer-mode-header">
+        <div>
+          <span>Enter 切换模式</span>
+          <strong>{mode.label}</strong>
+          <p>{mode.summary}</p>
+        </div>
+        <em>{mode.tradeoff}</em>
+      </div>
+
+      <div className="layer-flow">
+        <div className="layer-stack">
+          {mode.layers.map((layer) => {
+            const active = receiver.subscription.includes(layer.label) || receiver.subscription.includes(layer.resolution);
+            return (
+              <article
+                className={`${toneClass(layer.tone)} ${active ? "active" : ""}`}
+                key={layer.label}
+              >
+                <strong>{layer.label}</strong>
+                <span>{layer.resolution}</span>
+                <em>{layer.bitrate}</em>
+                <p>{layer.dependency}</p>
+              </article>
+            );
+          })}
+        </div>
+        <div className="layer-sfu-node">
+          <span>SFU</span>
+          <strong>select layer</strong>
+          <p>{mode.serverBehavior}</p>
+        </div>
+        <div className="layer-receiver-list">
+          {data.receivers.map((item, index) => (
+            <button
+              className={`${toneClass(item.tone)} ${index === activeReceiver ? "active" : ""}`}
+              key={item.label}
+              type="button"
+              onClick={() => setActiveReceiver(index)}
+            >
+              <strong>{item.label}</strong>
+              <span>{item.subscription}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className={`layer-inspector ${toneClass(receiver.tone)}`}>
+        <strong>{receiver.layout}</strong>
+        <span>{receiver.network}</span>
+        <p>{receiver.why}</p>
+      </div>
+    </div>
+  );
+}
+
+export function CodecTradeoff({
+  data,
+  interactionCommand,
+}: InteractiveVisualProps<CodecTradeoffData>) {
+  const [activeOption, setActiveOption] = useState(4);
+  const [activeCriterion, setActiveCriterion] = useState(0);
+  const option = data.options[activeOption];
+  const criterion = data.criteria[activeCriterion];
+
+  useEffect(() => {
+    if (interactionCommand.tick === 0) return;
+    if (interactionCommand.action === "activate") {
+      setActiveCriterion((value) => wrap(value + 1, data.criteria.length));
+      return;
+    }
+    setActiveOption((value) => wrap(value + interactionCommand.direction, data.options.length));
+  }, [
+    data.criteria.length,
+    data.options.length,
+    interactionCommand.action,
+    interactionCommand.direction,
+    interactionCommand.tick,
+  ]);
+
+  return (
+    <div className="codec-tradeoff">
+      <div className="tradeoff-scenario">
+        <span>弱网移动端</span>
+        <strong>{data.scenario}</strong>
+      </div>
+
+      <div className="tradeoff-grid">
+        {data.options.map((candidate, index) => (
+          <button
+            className={`${toneClass(candidate.tone)} ${index === activeOption ? "active" : ""}`}
+            key={candidate.label}
+            type="button"
+            onClick={() => setActiveOption(index)}
+          >
+            <strong>{candidate.label}</strong>
+            <span>{candidate.verdict}</span>
+            <i style={{ width: `${candidate.scores[activeCriterion] * 20}%` }} />
+          </button>
+        ))}
+      </div>
+
+      <div className={`tradeoff-inspector ${toneClass(option.tone)}`}>
+        <div>
+          <span>{criterion.label}: {criterion.question}</span>
+          <strong>{option.label}</strong>
+        </div>
+        <section>
+          <article>
+            <span>短期兜底</span>
+            <p>{option.shortTerm}</p>
+          </article>
+          <article>
+            <span>长期演进</span>
+            <p>{option.longTerm}</p>
+          </article>
+          <article>
+            <span>副作用</span>
+            <p>{option.risk}</p>
+          </article>
+        </section>
       </div>
     </div>
   );

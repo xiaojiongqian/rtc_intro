@@ -16,6 +16,11 @@ export type VisualType =
   | "mediaTopologyComparison"
   | "hybridArchitecture"
   | "architectureDecision"
+  | "codecOverview"
+  | "audioProcessing"
+  | "videoParameters"
+  | "layeredEncoding"
+  | "codecTradeoff"
   | "signalChain"
   | "latencyBudget"
   | "jitterSync"
@@ -266,6 +271,118 @@ export type ArchitectureDecisionData = {
     bestFor: string;
     avoidWhen: string;
     lensNotes: string[];
+    scores: number[];
+    tone: "signal" | "protocol" | "warning" | "accent";
+  }>;
+};
+
+export type CodecOverviewData = {
+  logicSteps: Array<{
+    label: string;
+    question: string;
+    detail: string;
+    tone: "signal" | "protocol" | "warning" | "accent";
+  }>;
+  scenarios: Array<{
+    label: string;
+    context: string;
+    recommended: string;
+    reason: string;
+    priorities: string[];
+    preferredCodecs: string[];
+    tone: "signal" | "protocol" | "warning" | "accent";
+  }>;
+  codecs: Array<{
+    label: string;
+    kind: "audio" | "video";
+    tier: "baseline" | "enhancement";
+    role: string;
+    strength: string;
+    cost: string;
+    fit: string;
+    baseline: string;
+    decision: string;
+    metrics: Array<{
+      label: string;
+      value: string;
+      note: string;
+    }>;
+    tone: "signal" | "protocol" | "warning" | "accent";
+  }>;
+};
+
+export type AudioProcessingData = {
+  scenarios: Array<{
+    label: string;
+    prompt: string;
+    codec: string;
+    capture: string;
+    answer: string;
+    stages: Array<{
+      label: string;
+      setting: "on" | "off" | "careful";
+      detail: string;
+      tone: "signal" | "protocol" | "warning" | "accent";
+    }>;
+  }>;
+};
+
+export type VideoParametersData = {
+  cases: Array<{
+    label: string;
+    symptom: string;
+    diagnosis: string;
+    recommendation: string;
+    metrics: Array<{
+      label: string;
+      value: string;
+      tone: "signal" | "protocol" | "warning" | "accent";
+    }>;
+    levers: Array<{
+      label: string;
+      choice: string;
+      impact: string;
+      tone: "signal" | "protocol" | "warning" | "accent";
+    }>;
+  }>;
+};
+
+export type LayeredEncodingData = {
+  modes: Array<{
+    label: string;
+    summary: string;
+    serverBehavior: string;
+    tradeoff: string;
+    layers: Array<{
+      label: string;
+      resolution: string;
+      bitrate: string;
+      dependency: string;
+      tone: "signal" | "protocol" | "warning" | "accent";
+    }>;
+  }>;
+  receivers: Array<{
+    label: string;
+    layout: string;
+    network: string;
+    subscription: string;
+    why: string;
+    tone: "signal" | "protocol" | "warning" | "accent";
+  }>;
+};
+
+export type CodecTradeoffData = {
+  scenario: string;
+  criteria: Array<{
+    label: string;
+    question: string;
+  }>;
+  options: Array<{
+    label: string;
+    verdict: string;
+    shortTerm: string;
+    longTerm: string;
+    risk: string;
     scores: number[];
     tone: "signal" | "protocol" | "warning" | "accent";
   }>;
