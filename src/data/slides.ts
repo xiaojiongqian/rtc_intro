@@ -1,5 +1,14 @@
 import type { Slide } from "../types";
-import { architectureSlides, codecSlides, fundamentalsSlides, introSlides, protocolSlides } from "./sections";
+import {
+  architectureSlides,
+  codecSlides,
+  fundamentalsSlides,
+  introSlides,
+  practiceFrontierSlides,
+  protocolSlides,
+  securityOpsSlides,
+  transportSlides,
+} from "./sections";
 
 export const slides: Slide[] = [
   ...introSlides,
@@ -7,4 +16,7 @@ export const slides: Slide[] = [
   ...protocolSlides,
   ...architectureSlides,
   ...codecSlides,
+  ...transportSlides,
+  ...securityOpsSlides,
+  ...practiceFrontierSlides,
 ];

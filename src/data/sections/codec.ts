@@ -1,4 +1,5 @@
 import type { Slide } from "../../types";
+import { referenceFigures } from "../referenceFigures";
 
 export const codecSlides: Slide[] = [
   {
@@ -191,58 +192,16 @@ export const codecSlides: Slide[] = [
     durationMinutes: 6,
     keyPoints: [
       "Opus 负责把实时语音和音乐以较低码率传出去；G.711 主要是传统电话/网关互通能力。",
-      "AEC、NS、AGC 会改善会议可懂度，但也可能误伤音乐、系统音频和高动态内容。",
+      "AEC 依赖远端参考信号来抵消扬声器回灌；波形上看是压低回声残留，而不是删除所有非语音。",
       "音频策略应按场景切换：外放会议重视回声控制，音乐教学重视保真，系统音频重视不要被误消除。",
     ],
     takeaway: "音频链路的第一原则是“听懂且不刺耳”，第二原则才是“尽量干净”。",
     visual: {
-      type: "audioProcessing",
-      data: {
-        scenarios: [
-          {
-            label: "外放会议",
-            prompt: "学生外放听课又开麦，是否应该开强 AEC？",
-            codec: "Opus speech mode",
-            capture: "麦克风 + 扬声器回放串入",
-            answer: "应优先打开 AEC，并配合适度 NS/AGC；否则远端会听到自己回声。",
-            stages: [
-              { label: "AEC", setting: "on", detail: "消除远端播放声回灌，外放场景优先级最高。", tone: "signal" },
-              { label: "NS", setting: "careful", detail: "压制风扇/键盘，但别把尾音和弱语音吃掉。", tone: "protocol" },
-              { label: "AGC", setting: "careful", detail: "平衡说话音量，避免远近变化太大。", tone: "warning" },
-              { label: "Opus", setting: "on", detail: "以语音可懂度和低延迟为目标编码。", tone: "signal" },
-            ],
-          },
-          {
-            label: "音乐教学",
-            prompt: "钢琴课是否应该默认强降噪、强增益、强回声消除？",
-            codec: "Opus music / fullband",
-            capture: "乐器 + 人声 + 房间混响",
-            answer: "不应默认拉满。音乐教学更怕动态和泛音被处理器当成噪声。",
-            stages: [
-              { label: "AEC", setting: "careful", detail: "耳机可弱化；外放才需要更强回声控制。", tone: "warning" },
-              { label: "NS", setting: "off", detail: "强降噪可能切掉泛音、延音和弱音。", tone: "accent" },
-              { label: "AGC", setting: "off", detail: "自动拉平动态会破坏演奏强弱变化。", tone: "accent" },
-              { label: "Opus", setting: "on", detail: "提高音频带宽与码率上限，保留音乐细节。", tone: "signal" },
-            ],
-          },
-          {
-            label: "系统音频",
-            prompt: "播放课件视频并共享系统声音时，AEC 该消除什么？",
-            codec: "Opus stereo when needed",
-            capture: "麦克风 + 系统播放音",
-            answer: "要区分远端回声与本地要分享的系统音，避免把课件声音误消掉。",
-            stages: [
-              { label: "AEC", setting: "careful", detail: "只消远端回放更安全，系统共享声可能是有效内容。", tone: "protocol" },
-              { label: "NS", setting: "careful", detail: "系统音乐或视频声不应被当成背景噪声。", tone: "warning" },
-              { label: "AGC", setting: "careful", detail: "语音与系统声混合时要防止泵音。", tone: "warning" },
-              { label: "Opus", setting: "on", detail: "根据是否有音乐/立体声调整编码参数。", tone: "signal" },
-            ],
-          },
-        ],
-      },
+      type: "referenceFigure",
+      data: referenceFigures.audioAec,
     },
     notes:
-      "本页互动：让学生先判断音乐教学是否应该默认强处理，再展示不同场景下 AEC/NS/AGC 的策略差异。收束到：浏览器约束开关不是越多越好，而是要保护当前内容类型。",
+      "本页互动：先让学生沿 AEC 图指出近端人声、远端回放、麦克风混合信号和参考输入；再切到波形图，讨论为什么音乐教学不能默认强降噪、强增益、强回声消除。",
   },
   {
     id: 26,
@@ -251,68 +210,17 @@ export const codecSlides: Slide[] = [
     subtitle: "画质不是只靠码率，编码器、分辨率、帧率、QP 与层级一起决定结果",
     durationMinutes: 6,
     keyPoints: [
-      "VP8/H.264 解决广泛互通；VP9/AV1 追求更高压缩效率，但会带来端侧负载与兼容性问题。",
-      "CPU 高时优先减少编码复杂度和帧率；带宽低时优先降分辨率/层级并保护关键画面。",
-      "共享屏、人像视频和弱网移动端不是同一种内容，应使用不同帧率、分辨率和码率策略。",
+      "编码器效率图只能说明趋势，真实收益要结合内容、实现、preset、硬件路径和端侧功耗判断。",
+      "RD 曲线说明同样 360p 下，不同内容源达到相同质量所需码率差异很大。",
+      "共享屏、人像视频和弱网移动端不是同一种内容，应使用不同分辨率、帧率、码率和关键帧策略。",
     ],
     takeaway: "视频调优不是“清晰度拉满”，而是把内容类型、网络瓶颈和设备预算对齐。",
     visual: {
-      type: "videoParameters",
-      data: {
-        cases: [
-          {
-            label: "CPU 占用高",
-            symptom: "本端发热、风扇响、编码帧率下降，远端看到卡顿。",
-            diagnosis: "瓶颈在编码复杂度和帧生产速度，不是单纯带宽不够。",
-            recommendation: "先降帧率或分辨率，必要时从 AV1/VP9 回退到硬件支持更好的 H.264/VP8。",
-            metrics: [
-              { label: "framesEncoded", value: "下降", tone: "warning" },
-              { label: "encodeTime", value: "升高", tone: "accent" },
-              { label: "QP", value: "波动", tone: "protocol" },
-            ],
-            levers: [
-              { label: "帧率", choice: "30 → 15fps", impact: "明显减轻编码压力，动作流畅度下降。", tone: "signal" },
-              { label: "分辨率", choice: "720p → 360p", impact: "减少像素量，文字和细节会变糊。", tone: "protocol" },
-              { label: "编码器", choice: "优先硬件路径", impact: "降低功耗，但受设备支持约束。", tone: "warning" },
-            ],
-          },
-          {
-            label: "带宽不足",
-            symptom: "RTT 抖动、丢包上升，远端频繁降清晰度或冻结。",
-            diagnosis: "瓶颈在网络承载能力，盲目提高码率会放大排队和丢包。",
-            recommendation: "优先保音频，切低视频层或降分辨率，再用 pacing/码率估计慢慢恢复。",
-            metrics: [
-              { label: "packetLoss", value: "上升", tone: "warning" },
-              { label: "availableBitrate", value: "下降", tone: "accent" },
-              { label: "freeze", value: "增加", tone: "protocol" },
-            ],
-            levers: [
-              { label: "码率", choice: "降低目标码率", impact: "减少拥塞，画质先牺牲。", tone: "signal" },
-              { label: "层级", choice: "订阅 Low/Mid", impact: "SFU 可按接收端差异化降级。", tone: "protocol" },
-              { label: "音频", choice: "audio first", impact: "保证课堂理解不中断。", tone: "warning" },
-            ],
-          },
-          {
-            label: "共享屏模糊",
-            symptom: "人像还行，但 PPT 字体和代码看不清。",
-            diagnosis: "内容是静态高细节，不能套用人像视频的低分辨率/高帧率策略。",
-            recommendation: "提高分辨率和关键帧质量，降低帧率，把码率留给文字边缘和细节。",
-            metrics: [
-              { label: "resolution", value: "关键", tone: "signal" },
-              { label: "framerate", value: "可低", tone: "protocol" },
-              { label: "QP", value: "需稳定", tone: "warning" },
-            ],
-            levers: [
-              { label: "分辨率", choice: "优先 1080p", impact: "文字清楚，但需要更高像素预算。", tone: "signal" },
-              { label: "帧率", choice: "5-15fps", impact: "静态内容足够，节省码率。", tone: "protocol" },
-              { label: "内容提示", choice: "screen profile", impact: "编码器更重视边缘和静态细节。", tone: "accent" },
-            ],
-          },
-        ],
-      },
+      type: "referenceFigure",
+      data: referenceFigures.videoCodecEfficiency,
     },
     notes:
-      "本页互动：给学生 CPU 高、带宽低、共享屏模糊三个现象，让他们先选“降帧率、降分辨率、换编码、提码率”中的动作，再看诊断面板。",
+      "本页互动：先让学生读压缩效率趋势，再切到 RD 曲线，讨论为什么会议人像、复杂运动和共享屏不应共用同一套码率/帧率/分辨率策略。",
   },
   {
     id: 27,
@@ -323,66 +231,15 @@ export const codecSlides: Slide[] = [
     keyPoints: [
       "Simulcast 是发送端同时发多份不同分辨率/码率的流，SFU 选择其中一份转给接收端。",
       "SVC 是同一编码流内分层，低层可独立解码，高层在低层基础上增强时间或空间质量。",
-      "分层的价值在接收端差异化：大画面拿高层，小宫格拿中层，弱网手机先保低层和音频。",
+      "空间层和时间层都要看码率预算：低层是兜底，高层服务大画面、流畅度和细节。",
     ],
     takeaway: "SFU 的选择性转发能力，前提是发送端真的生产了可选择的质量层。",
     visual: {
-      type: "layeredEncoding",
-      data: {
-        modes: [
-          {
-            label: "Simulcast",
-            summary: "多份独立编码流：Low/Mid/High 通常可分别转发和丢弃。",
-            serverBehavior: "SFU 选择一条合适的编码流转发给接收端。",
-            tradeoff: "选择简单、兼容成熟；发送端上行和编码成本更高。",
-            layers: [
-              { label: "Low", resolution: "180p", bitrate: "150kbps", dependency: "独立低清流", tone: "warning" },
-              { label: "Mid", resolution: "360p", bitrate: "600kbps", dependency: "独立中清流", tone: "protocol" },
-              { label: "High", resolution: "720p", bitrate: "1.5Mbps", dependency: "独立高清流", tone: "signal" },
-            ],
-          },
-          {
-            label: "SVC",
-            summary: "一条编码流内部带基础层和增强层，接收端按层级逐步增强。",
-            serverBehavior: "SFU 丢弃或转发增强层，不必重新编码。",
-            tradeoff: "带宽利用更细，层间依赖和兼容性更考验实现。",
-            layers: [
-              { label: "L0", resolution: "180p", bitrate: "base", dependency: "基础层，可独立解码", tone: "warning" },
-              { label: "L1", resolution: "360p", bitrate: "+ temporal", dependency: "依赖 L0，增强流畅度", tone: "protocol" },
-              { label: "L2", resolution: "720p", bitrate: "+ spatial", dependency: "依赖低层，增强空间细节", tone: "signal" },
-            ],
-          },
-        ],
-        receivers: [
-          {
-            label: "主讲大画面",
-            layout: "占据第一屏核心区域",
-            network: "有线/强 Wi-Fi",
-            subscription: "High / L2",
-            why: "画面尺寸大，面部表情和板书细节会直接影响理解。",
-            tone: "signal",
-          },
-          {
-            label: "普通宫格",
-            layout: "小窗口显示多名学生",
-            network: "普通 Wi-Fi",
-            subscription: "Mid / L1",
-            why: "窗口小，高清层收益有限，中层可节省下行和解码。",
-            tone: "protocol",
-          },
-          {
-            label: "弱网手机",
-            layout: "后台或小屏旁听",
-            network: "蜂窝弱网",
-            subscription: "Low / L0 + audio",
-            why: "优先保持声音连续和低层画面，避免高层拖垮播放缓冲。",
-            tone: "warning",
-          },
-        ],
-      },
+      type: "referenceFigure",
+      data: referenceFigures.layeredEncoding,
     },
     notes:
-      "本页互动：上下键切接收端，Enter 在 Simulcast 和 SVC 间切换。让学生解释当前接收端为什么订阅这一层，而不是只记概念定义。",
+      "本页互动：让学生按图组顺序回答三个问题：Simulcast/SVC 哪些层可独立解码；720p 空间层预算为什么主要花在高层；A、C 订阅不同质量时服务器如何合并成对发布端 B 的上行要求。",
   },
   {
     id: 28,

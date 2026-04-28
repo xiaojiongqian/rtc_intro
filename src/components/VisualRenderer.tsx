@@ -1,59 +1,101 @@
 import type {
   ArchitectureDecisionData,
+  AudioPreprocessingStrategyData,
   AudioProcessingData,
+  BandwidthControlData,
+  BrowserP2PWalkthroughData,
   CodecOverviewData,
   CodecTradeoffData,
   ConnectionTroubleshootingData,
   CourseRhythmData,
+  DeploymentTopologyData,
+  EcosystemMapData,
+  ExperimentReviewData,
   HybridArchitectureData,
   IcePathData,
+  IncidentTimelineData,
   InteractionCommand,
+  JitterBufferTuningData,
   JitterSyncData,
+  LatencyOptimizationChecklistData,
   LatencyBudgetData,
   LearningMapData,
   LayeredEncodingData,
+  LossRecoveryData,
   MediaTopologyComparisonData,
   MeshArchitectureData,
+  MonitoringDashboardData,
   OfferAnswerData,
+  PracticeRunbookData,
   ProtocolFlowData,
   ProtocolStackData,
   QosQoeMatrixData,
+  ReferenceFigureData,
+  RecoveryStrategySortData,
+  RecoveryMechanismData,
   RtcScopeData,
   ScenarioMapData,
   SecureChannelData,
+  SecurityPrivacyBoundaryData,
   SignalChainData,
+  SignalingServerWalkthroughData,
   SignalingBoundaryData,
   SfuArchitectureData,
+  SfuCodeWalkthroughData,
+  SloLadderData,
+  StandardsTimelineData,
   StudentPromptData,
+  TestingToolchainData,
   VideoParametersData,
   VisualSpec,
 } from "../types";
 import {
   ArchitectureDecision,
+  AudioPreprocessingStrategy,
   AudioProcessing,
+  BandwidthControl,
+  BrowserP2PWalkthrough,
   CodecOverview,
   CodecTradeoff,
   ConnectionTroubleshooting,
   CourseRhythm,
+  DeploymentTopology,
+  EcosystemMap,
+  ExperimentReview,
   HybridArchitecture,
   IcePath,
+  IncidentTimeline,
+  JitterBufferTuning,
   JitterSync,
+  LatencyOptimizationChecklist,
   LatencyBudget,
   LayeredEncoding,
   LearningMap,
+  LossRecovery,
   MediaTopologyComparison,
   MeshArchitecture,
+  MonitoringDashboard,
   OfferAnswer,
+  PracticeRunbook,
   ProtocolFlow,
   ProtocolStack,
   QosQoeMatrix,
+  ReferenceFigure,
+  RecoveryMechanism,
+  RecoveryStrategySort,
   RtcScope,
   ScenarioMap,
   SecureChannel,
+  SecurityPrivacyBoundary,
   SignalChain,
+  SignalingServerWalkthrough,
   SignalingBoundary,
   SfuArchitecture,
+  SfuCodeWalkthrough,
+  SloLadder,
+  StandardsTimeline,
   StudentPrompt,
+  TestingToolchain,
   VideoParameters,
 } from "./visuals";
 
@@ -215,6 +257,153 @@ export function VisualRenderer({ interactionCommand, visual }: VisualRendererPro
       return (
         <CodecTradeoff
           data={visual.data as CodecTradeoffData}
+          interactionCommand={interactionCommand}
+        />
+      );
+    case "bandwidthControl":
+      return (
+        <BandwidthControl
+          data={visual.data as BandwidthControlData}
+          interactionCommand={interactionCommand}
+        />
+      );
+    case "lossRecovery":
+      return (
+        <LossRecovery
+          data={visual.data as LossRecoveryData}
+          interactionCommand={interactionCommand}
+        />
+      );
+    case "recoveryMechanism":
+      return (
+        <RecoveryMechanism
+          data={visual.data as RecoveryMechanismData}
+          interactionCommand={interactionCommand}
+        />
+      );
+    case "jitterBufferTuning":
+      return (
+        <JitterBufferTuning
+          data={visual.data as JitterBufferTuningData}
+          interactionCommand={interactionCommand}
+        />
+      );
+    case "audioPreprocessingStrategy":
+      return (
+        <AudioPreprocessingStrategy
+          data={visual.data as AudioPreprocessingStrategyData}
+          interactionCommand={interactionCommand}
+        />
+      );
+    case "recoveryStrategySort":
+      return (
+        <RecoveryStrategySort
+          data={visual.data as RecoveryStrategySortData}
+          interactionCommand={interactionCommand}
+        />
+      );
+    case "latencyOptimizationChecklist":
+      return (
+        <LatencyOptimizationChecklist
+          data={visual.data as LatencyOptimizationChecklistData}
+          interactionCommand={interactionCommand}
+        />
+      );
+    case "securityPrivacyBoundary":
+      return (
+        <SecurityPrivacyBoundary
+          data={visual.data as SecurityPrivacyBoundaryData}
+          interactionCommand={interactionCommand}
+        />
+      );
+    case "deploymentTopology":
+      return (
+        <DeploymentTopology
+          data={visual.data as DeploymentTopologyData}
+          interactionCommand={interactionCommand}
+        />
+      );
+    case "testingToolchain":
+      return (
+        <TestingToolchain
+          data={visual.data as TestingToolchainData}
+          interactionCommand={interactionCommand}
+        />
+      );
+    case "monitoringDashboard":
+      return (
+        <MonitoringDashboard
+          data={visual.data as MonitoringDashboardData}
+          interactionCommand={interactionCommand}
+        />
+      );
+    case "sloLadder":
+      return (
+        <SloLadder
+          data={visual.data as SloLadderData}
+          interactionCommand={interactionCommand}
+        />
+      );
+    case "incidentTimeline":
+      return (
+        <IncidentTimeline
+          data={visual.data as IncidentTimelineData}
+          interactionCommand={interactionCommand}
+        />
+      );
+    case "practiceRunbook":
+      return (
+        <PracticeRunbook
+          data={visual.data as PracticeRunbookData}
+          interactionCommand={interactionCommand}
+        />
+      );
+    case "signalingServerWalkthrough":
+      return (
+        <SignalingServerWalkthrough
+          data={visual.data as SignalingServerWalkthroughData}
+          interactionCommand={interactionCommand}
+        />
+      );
+    case "browserP2PWalkthrough":
+      return (
+        <BrowserP2PWalkthrough
+          data={visual.data as BrowserP2PWalkthroughData}
+          interactionCommand={interactionCommand}
+        />
+      );
+    case "sfuCodeWalkthrough":
+      return (
+        <SfuCodeWalkthrough
+          data={visual.data as SfuCodeWalkthroughData}
+          interactionCommand={interactionCommand}
+        />
+      );
+    case "experimentReview":
+      return (
+        <ExperimentReview
+          data={visual.data as ExperimentReviewData}
+          interactionCommand={interactionCommand}
+        />
+      );
+    case "ecosystemMap":
+      return (
+        <EcosystemMap
+          data={visual.data as EcosystemMapData}
+          interactionCommand={interactionCommand}
+        />
+      );
+    case "standardsTimeline":
+      return (
+        <StandardsTimeline
+          data={visual.data as StandardsTimelineData}
+          interactionCommand={interactionCommand}
+        />
+      );
+    case "referenceFigure":
+      return (
+        <ReferenceFigure
+          data={visual.data as ReferenceFigureData}
           interactionCommand={interactionCommand}
         />
       );

@@ -2,44 +2,71 @@ import {
   Activity,
   CheckCircle2,
   Clock3,
+  Gauge,
   GitBranch,
   KeyRound,
   Layers3,
+  ListChecks,
   MousePointerClick,
   Network,
   RadioTower,
+  RefreshCw,
   Route,
   ShieldCheck,
   SlidersHorizontal,
+  Volume2,
+  Wifi,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import type { CSSProperties } from "react";
 import type {
   ArchitectureDecisionData,
+  AudioPreprocessingStrategyData,
   AudioProcessingData,
+  BandwidthControlData,
+  BrowserP2PWalkthroughData,
   CodecOverviewData,
   CodecTradeoffData,
   ConnectionTroubleshootingData,
   CourseRhythmData,
+  DeploymentTopologyData,
+  EcosystemMapData,
+  ExperimentReviewData,
   HybridArchitectureData,
   IcePathData,
+  IncidentTimelineData,
   InteractionCommand,
+  JitterBufferTuningData,
   JitterSyncData,
+  LatencyOptimizationChecklistData,
   LatencyBudgetData,
   LayeredEncodingData,
   LearningMapData,
+  LossRecoveryData,
   MediaTopologyComparisonData,
   MeshArchitectureData,
+  MonitoringDashboardData,
   OfferAnswerData,
+  PracticeRunbookData,
   ProtocolFlowData,
   ProtocolStackData,
   QosQoeMatrixData,
+  ReferenceFigureData,
+  RecoveryMechanismData,
+  RecoveryStrategySortData,
   RtcScopeData,
   ScenarioMapData,
   SecureChannelData,
+  SecurityPrivacyBoundaryData,
   SignalChainData,
+  SignalingServerWalkthroughData,
   SignalingBoundaryData,
   SfuArchitectureData,
+  SfuCodeWalkthroughData,
+  SloLadderData,
+  StandardsTimelineData,
   StudentPromptData,
+  TestingToolchainData,
   VideoParametersData,
 } from "../types";
 
@@ -1593,6 +1620,1549 @@ export function CodecTradeoff({
             <p>{option.risk}</p>
           </article>
         </section>
+      </div>
+    </div>
+  );
+}
+
+export function BandwidthControl({
+  data,
+  interactionCommand,
+}: InteractiveVisualProps<BandwidthControlData>) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const scenario = data.scenarios[activeIndex];
+  const activeLoop = data.loop.find((step) => step.label === scenario.focusStage) ?? data.loop[0];
+
+  useEffect(() => {
+    if (interactionCommand.tick === 0) return;
+    setActiveIndex((value) => wrap(value + interactionCommand.direction, data.scenarios.length));
+  }, [data.scenarios.length, interactionCommand.direction, interactionCommand.tick]);
+
+  return (
+    <div className="bandwidth-control">
+      <div className="transport-hint">
+        <Wifi size={17} strokeWidth={1.8} />
+        <span>↑↓ 切换网络状态，观察反馈闭环中最该关注的环节</span>
+      </div>
+
+      <div className={`transport-topology congestion-topology ${toneClass(scenario.tone)}`}>
+        <div className="topology-node endpoint-node">
+          <span>发送端</span>
+          <strong>Encoder + Pacer</strong>
+          <em>{scenario.action}</em>
+        </div>
+        <div className="topology-link media-link">
+          <i />
+          <span>RTP/SRTP media</span>
+        </div>
+        <div className="topology-node bottleneck-node">
+          <span>接入网 / 瓶颈队列</span>
+          <strong>{scenario.signal}</strong>
+          <div className="packet-lanes" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+            <i />
+            <i />
+          </div>
+        </div>
+        <div className="topology-link media-link">
+          <i />
+          <span>arrival timing</span>
+        </div>
+        <div className="topology-node endpoint-node">
+          <span>接收端</span>
+          <strong>Stats + Jitter Buffer</strong>
+          <em>loss / delay / ECN</em>
+        </div>
+        <div className="feedback-path">
+          <span>RTCP Transport-CC / TMMBR / RR</span>
+        </div>
+        <div className="control-path">
+          <span>target bitrate / active layer / pacing rate</span>
+        </div>
+      </div>
+
+      <div className="congestion-loop">
+        {data.loop.map((step) => {
+          const active = step.label === scenario.focusStage;
+          return (
+            <article
+              className={`${toneClass(step.tone)} ${active ? "active" : ""}`}
+              key={step.label}
+            >
+              <span>{step.label}</span>
+              <strong>{step.output}</strong>
+              <p>{active ? step.role : step.evidence}</p>
+            </article>
+          );
+        })}
+      </div>
+
+      <div className="congestion-scenarios">
+        {data.scenarios.map((item, index) => (
+          <button
+            className={`${toneClass(item.tone)} ${index === activeIndex ? "active" : ""}`}
+            key={item.label}
+            type="button"
+            onClick={() => setActiveIndex(index)}
+          >
+            <strong>{item.label}</strong>
+            <span>{item.signal}</span>
+          </button>
+        ))}
+      </div>
+
+      <aside className={`congestion-inspector ${toneClass(scenario.tone)}`}>
+        <div>
+          <Gauge size={24} strokeWidth={1.6} />
+          <strong>{scenario.estimate}</strong>
+        </div>
+        <section>
+          <p><span>定位</span>{activeLoop.label}: {activeLoop.evidence}</p>
+          <p><span>优先级</span>{scenario.priority}</p>
+          <p><span>动作</span>{scenario.action}</p>
+        </section>
+      </aside>
+    </div>
+  );
+}
+
+export function LossRecovery({
+  data,
+  interactionCommand,
+}: InteractiveVisualProps<LossRecoveryData>) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const current = data.cases[activeIndex];
+  const primary = current.best[0] ?? data.mechanisms[0]?.label;
+  const recoveryLabel =
+    current.best.length > 1 ? `${primary}: ${current.best.join(" + ")}` : primary;
+
+  useEffect(() => {
+    if (interactionCommand.tick === 0) return;
+    setActiveIndex((value) => wrap(value + interactionCommand.direction, data.cases.length));
+  }, [data.cases.length, interactionCommand.direction, interactionCommand.tick]);
+
+  return (
+    <div className="loss-recovery">
+      <div className="recovery-case-tabs">
+        {data.cases.map((item, index) => (
+          <button
+            className={`${toneClass(item.tone)} ${index === activeIndex ? "active" : ""}`}
+            key={item.label}
+            type="button"
+            onClick={() => setActiveIndex(index)}
+          >
+            <strong>{item.label}</strong>
+            <span>{item.condition}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="recovery-flow-lanes">
+        {data.mechanisms.map((mechanism) => {
+          const recommended = current.best.includes(mechanism.label);
+          const usesFeedback = mechanism.label !== "FEC";
+          return (
+            <article
+              className={`recovery-flow-lane ${toneClass(mechanism.tone)} ${recommended ? "active" : ""}`}
+              key={mechanism.label}
+            >
+              <div>
+                <RefreshCw size={18} strokeWidth={1.7} />
+                <strong>{mechanism.label}</strong>
+              </div>
+              <div className="mini-flow">
+                <span>Sender</span>
+                <i className={mechanism.label === "FEC" ? "fec-media" : "media"} />
+                <span>Net</span>
+                <i className={recommended ? "loss active" : "loss"} />
+                <span>Receiver</span>
+              </div>
+              {usesFeedback ? (
+                <em className="mini-feedback">{mechanism.trigger} → {mechanism.timing}</em>
+              ) : (
+                <em className="mini-feedback">媒体包 + RED/FEC 冗余同向发送</em>
+              )}
+              <p>{recommended ? mechanism.worksWhen : mechanism.cost}</p>
+            </article>
+          );
+        })}
+      </div>
+
+      <aside className={`recovery-inspector ${toneClass(current.tone)}`}>
+        <div className="recovery-metrics">
+          {current.metrics.map((metric) => (
+            <span key={metric.label}>
+              <strong>{metric.value}</strong>
+              {metric.label}
+            </span>
+          ))}
+        </div>
+        <section>
+          <strong>{recoveryLabel}</strong>
+          <p>{current.rationale}</p>
+          <em>{current.avoid}</em>
+        </section>
+      </aside>
+    </div>
+  );
+}
+
+const mechanismTopology = {
+  nack: {
+    sender: ["发送端", "RTP cache / RTX", "保留最近媒体包，按 NACK 取回缺口"],
+    receiver: ["接收端", "Seq Tracker", "看到 104 后直接到 106，定位 seq=105 缺失"],
+    process: ["播放窗口", "Jitter Buffer deadline", "补包必须在出队前抵达"],
+    output: ["解码播放", "Decoder / Playout", "赶上则解码，迟到则丢弃或隐藏"],
+    network: "RTP 正向媒体流 + RTCP 反向反馈流",
+    loss: "seq=105 lost",
+    packets: [
+      ["RTP 104", "ok"],
+      ["RTP 105", "lost"],
+      ["RTP 106", "ok"],
+      ["RTCP NACK", "feedback"],
+      ["RTX 105", "repair"],
+    ],
+    nodeSteps: { sender: 2, receiver: 0, process: 3, output: 3 },
+    targets: [
+      { nodes: ["receiver"], lanes: [0], packets: [1] },
+      { nodes: ["sender", "receiver"], lanes: [1], packets: [3] },
+      { nodes: ["sender"], lanes: [2], packets: [4] },
+      { nodes: ["process", "output"], lanes: [2], packets: [4] },
+    ],
+  },
+  pliFir: {
+    sender: ["发送端", "Encoder", "收到刷新请求后输出关键帧或 refresh point"],
+    receiver: ["接收端", "Decoder", "参考链断裂，后续预测帧没有可用基础"],
+    process: ["参考链", "Refresh point", "用新的可解码点重建预测链"],
+    output: ["视频播放", "Video Playout", "花屏或冻结从刷新点后恢复"],
+    network: "预测帧正向传输 + RTCP PLI/FIR 反向请求",
+    loss: "reference lost",
+    packets: [
+      ["P/B frames", "ok"],
+      ["ref lost", "lost"],
+      ["RTCP PLI/FIR", "feedback"],
+      ["Keyframe", "repair"],
+      ["new refs", "local"],
+    ],
+    nodeSteps: { sender: 2, receiver: 0, process: 3, output: 3 },
+    targets: [
+      { nodes: ["receiver"], lanes: [0], packets: [1] },
+      { nodes: ["sender", "receiver"], lanes: [1], packets: [2] },
+      { nodes: ["sender"], lanes: [2], packets: [3] },
+      { nodes: ["process", "output"], lanes: [2], packets: [4] },
+    ],
+  },
+  fec: {
+    sender: ["发送端", "Encoder + FEC", "为一组媒体包预先生成冗余保护"],
+    receiver: ["接收端", "Repair Buffer", "收到主包与冗余包后尝试本地恢复"],
+    process: ["本地修复", "FEC repair", "不用等 RTT，在 deadline 前重建缺口"],
+    output: ["解码播放", "Decoder / Playout", "恢复成功则像普通媒体包一样进入解码"],
+    network: "主媒体包与 FEC/RED 冗余包同向穿过网络",
+    loss: "random media loss",
+    packets: [
+      ["M1 media", "ok"],
+      ["M2 lost", "lost"],
+      ["FEC/RED", "repair"],
+      ["local repair", "local"],
+      ["no RTCP wait", "feedback"],
+    ],
+    nodeSteps: { sender: 0, receiver: 3, process: 3, output: 3 },
+    targets: [
+      { nodes: ["sender"], lanes: [1], packets: [2] },
+      { nodes: ["sender", "receiver"], lanes: [0, 1], packets: [0, 2] },
+      { nodes: ["receiver"], lanes: [0, 1], packets: [1] },
+      { nodes: ["process", "output"], lanes: [2], packets: [3] },
+    ],
+  },
+  plc: {
+    sender: ["发送端", "Audio RTP", "继续发送真实音频帧，本身不参与恢复"],
+    receiver: ["接收端", "Jitter Buffer", "播放时钟到了，但真实 20ms 音频帧没到"],
+    process: ["本地补偿", "PLC", "用历史波形和语音连续性生成替代片段"],
+    output: ["播放与观测", "Audio Output + Stats", "用户听到连续声音，concealment 指标升高"],
+    network: "RTP 音频正向到达；恢复动作只发生在接收端本地",
+    loss: "audio frame late/lost",
+    packets: [
+      ["audio n-1", "ok"],
+      ["audio n", "lost"],
+      ["deadline", "feedback"],
+      ["synthetic 20ms", "local"],
+      ["concealment", "repair"],
+    ],
+    nodeSteps: { sender: 0, receiver: 0, process: 1, output: 2 },
+    targets: [
+      { nodes: ["receiver"], lanes: [0], packets: [1, 2] },
+      { nodes: ["process"], lanes: [1], packets: [3] },
+      { nodes: ["output"], lanes: [1], packets: [3] },
+      { nodes: ["output"], lanes: [2], packets: [4] },
+    ],
+  },
+} satisfies Record<
+  RecoveryMechanismData["mechanism"],
+  {
+    sender: [string, string, string];
+    receiver: [string, string, string];
+    process: [string, string, string];
+    output: [string, string, string];
+    network: string;
+    loss: string;
+    packets: Array<[string, string]>;
+    nodeSteps: Record<"sender" | "receiver" | "process" | "output", number>;
+    targets: Array<{
+      nodes: string[];
+      lanes: number[];
+      packets: number[];
+    }>;
+  }
+>;
+
+export function RecoveryMechanism({
+  data,
+  interactionCommand,
+}: InteractiveVisualProps<RecoveryMechanismData>) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const active = data.flow[activeIndex];
+  const topology = mechanismTopology[data.mechanism];
+  const activeTarget = topology.targets[activeIndex] ?? topology.targets[0];
+  const label = data.mechanism === "pliFir" ? "PLI / FIR" : data.mechanism.toUpperCase();
+  const nodeClass = (name: "sender" | "receiver" | "process" | "output") =>
+    `mechanism-node mechanism-node-${name} ${
+      activeTarget.nodes.includes(name) ? "active" : ""
+    }`;
+  const nodeStep = (name: "sender" | "receiver" | "process" | "output") =>
+    topology.nodeSteps[name] ?? 0;
+
+  useEffect(() => {
+    if (interactionCommand.tick === 0) return;
+    setActiveIndex((value) => wrap(value + interactionCommand.direction, data.flow.length));
+  }, [data.flow.length, interactionCommand.direction, interactionCommand.tick]);
+
+  return (
+    <div className={`recovery-mechanism mechanism-${data.mechanism}`}>
+      <div className="mechanism-hero">
+        <div>
+          <span>{label}</span>
+          <strong>{data.headline}</strong>
+        </div>
+        <p>{data.scenario}</p>
+      </div>
+
+      <div className={`mechanism-topology ${toneClass(active.tone)}`}>
+        <button
+          className={nodeClass("sender")}
+          type="button"
+          onClick={() => setActiveIndex(nodeStep("sender"))}
+        >
+          <span>{topology.sender[0]}</span>
+          <strong>{topology.sender[1]}</strong>
+          <em>{topology.sender[2]}</em>
+        </button>
+
+        <section className="mechanism-network">
+          <div className="mechanism-network-head">
+            <span>{topology.network}</span>
+            <strong>{topology.loss}</strong>
+          </div>
+
+          <div className="mechanism-packets" aria-label={`${label} packet timeline`}>
+            {topology.packets.map(([packet, state], packetIndex) => (
+              <span
+                className={`packet-${state} ${
+                  activeTarget.packets.includes(packetIndex) ? "active" : ""
+                }`}
+                key={`${packet}-${packetIndex}`}
+              >
+                {packet}
+              </span>
+            ))}
+          </div>
+
+          <div className="mechanism-lanes">
+            {data.paths.map((path, index) => (
+              <button
+                className={`${toneClass(path.tone)} lane-${path.direction} ${
+                  activeTarget.lanes.includes(index) ? "active" : ""
+                }`}
+                key={path.label}
+                type="button"
+                onClick={() => setActiveIndex(Math.min(index, data.flow.length - 1))}
+              >
+                <span>{path.label}</span>
+                <strong>{path.payload}</strong>
+                <em>{path.note}</em>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <button
+          className={nodeClass("receiver")}
+          type="button"
+          onClick={() => setActiveIndex(nodeStep("receiver"))}
+        >
+          <span>{topology.receiver[0]}</span>
+          <strong>{topology.receiver[1]}</strong>
+          <em>{topology.receiver[2]}</em>
+        </button>
+
+        <button
+          className={nodeClass("process")}
+          type="button"
+          onClick={() => setActiveIndex(nodeStep("process"))}
+        >
+          <span>{topology.process[0]}</span>
+          <strong>{topology.process[1]}</strong>
+          <em>{topology.process[2]}</em>
+        </button>
+
+        <button
+          className={nodeClass("output")}
+          type="button"
+          onClick={() => setActiveIndex(nodeStep("output"))}
+        >
+          <span>{topology.output[0]}</span>
+          <strong>{topology.output[1]}</strong>
+          <em>{topology.output[2]}</em>
+        </button>
+      </div>
+
+      <div className={`mechanism-flow-map ${toneClass(active.tone)}`}>
+        {data.flow.map((step, index) => (
+          <button
+            className={`${toneClass(step.tone)} ${index === activeIndex ? "active" : ""}`}
+            key={step.label}
+            type="button"
+            onClick={() => setActiveIndex(index)}
+          >
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            <strong>{step.label}</strong>
+            <em>{step.role}</em>
+          </button>
+        ))}
+      </div>
+
+      <aside className={`mechanism-inspector ${toneClass(active.tone)}`}>
+        <section>
+          <span>{active.role}</span>
+          <strong>{active.label}</strong>
+          <p>{active.detail}</p>
+        </section>
+        <div>
+          {data.rules.map((rule) => (
+            <article className={toneClass(rule.tone)} key={rule.label}>
+              <span>{rule.label}</span>
+              <strong>{rule.value}</strong>
+            </article>
+          ))}
+        </div>
+        <em>{data.caveat}</em>
+      </aside>
+    </div>
+  );
+}
+
+export function JitterBufferTuning({
+  data,
+  interactionCommand,
+}: InteractiveVisualProps<JitterBufferTuningData>) {
+  const [activeIndex, setActiveIndex] = useState(1);
+  const scenario = data.scenarios[activeIndex];
+  const bufferSlots = Math.max(2, Math.min(7, Math.round(scenario.bufferMs / 28)));
+
+  useEffect(() => {
+    if (interactionCommand.tick === 0) return;
+    setActiveIndex((value) => wrap(value + interactionCommand.direction, data.scenarios.length));
+  }, [data.scenarios.length, interactionCommand.direction, interactionCommand.tick]);
+
+  return (
+    <div className="jitter-buffer-tuning">
+      <div className="buffer-tabs">
+        {data.scenarios.map((item, index) => (
+          <button
+            className={`${toneClass(item.tone)} ${index === activeIndex ? "active" : ""}`}
+            key={item.label}
+            type="button"
+            onClick={() => setActiveIndex(index)}
+          >
+            <strong>{item.label}</strong>
+            <span>{item.bufferMs}ms buffer</span>
+          </button>
+        ))}
+      </div>
+
+      <div className={`jitter-flow-map ${toneClass(scenario.tone)}`}>
+        <div className="jitter-source">
+          <span>{scenario.network}</span>
+          <strong>{scenario.verdict}</strong>
+        </div>
+        <div className="arrival-packets" aria-label="RTP packet arrival">
+          {scenario.curve.map((value, index) => (
+            <i
+              className={value > scenario.bufferMs ? "late" : ""}
+              key={`${value}-${index}`}
+              style={{ "--offset": `${Math.min(92, Math.max(4, value))}%` } as CSSProperties}
+            />
+          ))}
+        </div>
+        <div className="jitter-buffer-box">
+          <span>Jitter Buffer</span>
+          <div>
+            {Array.from({ length: 7 }).map((_, index) => (
+              <i className={index < bufferSlots ? "filled" : ""} key={index} />
+            ))}
+          </div>
+          <em>{scenario.bufferMs}ms playout delay</em>
+        </div>
+        <div className="decoder-flow-node">
+          <span>PLC / Decoder</span>
+          <strong>{scenario.freezeRate} freeze</strong>
+          <em>{scenario.mouthDelay}</em>
+        </div>
+      </div>
+
+      <div className="buffer-metrics">
+        <article className={toneClass(scenario.tone)}>
+          <span>jitter buffer</span>
+          <strong>{scenario.bufferMs}ms</strong>
+        </article>
+        <article className="tone-protocol">
+          <span>network jitter</span>
+          <strong>{scenario.jitterMs}ms</strong>
+        </article>
+        <article className="tone-warning">
+          <span>freeze</span>
+          <strong>{scenario.freezeRate}</strong>
+        </article>
+        <article className="tone-accent">
+          <span>互动感</span>
+          <strong>{scenario.mouthDelay}</strong>
+        </article>
+      </div>
+    </div>
+  );
+}
+
+export function AudioPreprocessingStrategy({
+  data,
+  interactionCommand,
+}: InteractiveVisualProps<AudioPreprocessingStrategyData>) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const scenario = data.scenarios[activeIndex];
+
+  useEffect(() => {
+    if (interactionCommand.tick === 0) return;
+    setActiveIndex((value) => wrap(value + interactionCommand.direction, data.scenarios.length));
+  }, [data.scenarios.length, interactionCommand.direction, interactionCommand.tick]);
+
+  return (
+    <div className="audio-preprocessing-strategy">
+      <div className="audio-strategy-tabs">
+        {data.scenarios.map((item, index) => (
+          <button
+            className={`${toneClass(item.tone)} ${index === activeIndex ? "active" : ""}`}
+            key={item.label}
+            type="button"
+            onClick={() => setActiveIndex(index)}
+          >
+            <strong>{item.label}</strong>
+            <span>{item.capture}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className={`audio-uplink-flow ${toneClass(scenario.tone)}`}>
+        <div className="audio-input-stack">
+          <span>输入源</span>
+          <strong>{scenario.capture}</strong>
+          <em>{scenario.risk}</em>
+        </div>
+        <div className="audio-flow-chain">
+          <span>Mic mix</span>
+          {scenario.settings.map((setting) => (
+            <i className={toneClass(setting.tone)} key={setting.label}>
+              {setting.label}
+            </i>
+          ))}
+          <span>Opus RTP</span>
+        </div>
+        <div className="audio-output-node">
+          <span>上行媒体流</span>
+          <strong>{scenario.recommendation}</strong>
+        </div>
+      </div>
+
+      <div className="audio-settings-grid">
+        {scenario.settings.map((setting) => (
+          <article className={toneClass(setting.tone)} key={setting.label}>
+            <span>{setting.label}</span>
+            <strong>{setting.value}</strong>
+            <p>{setting.why}</p>
+          </article>
+        ))}
+      </div>
+
+      <div className={`audio-waveform ${toneClass(scenario.tone)}`}>
+        <div>
+          <Volume2 size={24} strokeWidth={1.6} />
+          <strong>{scenario.recommendation}</strong>
+          <span>{scenario.risk}</span>
+        </div>
+        {scenario.waveform.map((item) => (
+          <div className="wave-row" key={item.label}>
+            <span>{item.label}</span>
+            <i className={toneClass(item.tone)} style={{ width: `${item.level}%` }} />
+            <em style={{ width: `${item.noise}%` }} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function RecoveryStrategySort({
+  data,
+  interactionCommand,
+}: InteractiveVisualProps<RecoveryStrategySortData>) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [revealCount, setRevealCount] = useState(0);
+  const ordered = [...data.strategies].sort((a, b) => a.defaultRank - b.defaultRank);
+  const active = ordered[activeIndex];
+  const locusLabel = {
+    audio: "Audio priority",
+    encoder: "Encoder / SVC",
+    feedback: "RTCP feedback",
+    fec: "FEC redundancy",
+    route: "TURN route",
+  }[active.locus];
+
+  useEffect(() => {
+    if (interactionCommand.tick === 0) return;
+    if (interactionCommand.action === "activate") {
+      setRevealCount((value) => Math.min(data.strategies.length, value + 1));
+      return;
+    }
+    setActiveIndex((value) => wrap(value + interactionCommand.direction, ordered.length));
+  }, [
+    data.strategies.length,
+    interactionCommand.action,
+    interactionCommand.direction,
+    interactionCommand.tick,
+    ordered.length,
+  ]);
+
+  return (
+    <div className="recovery-strategy-sort">
+      <div className="strategy-scenario">
+        <strong>{data.scenario.label}</strong>
+        <div>
+          {data.scenario.stats.map((stat) => (
+            <span className={toneClass(stat.tone)} key={stat.label}>
+              <em>{stat.label}</em>
+              {stat.value}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className={`weaknet-topology ${toneClass(active.tone)}`}>
+        {[
+          { key: "audio", label: "音频优先", detail: "Opus / DTX" },
+          { key: "encoder", label: "端侧编码器", detail: "降层 / 降帧率" },
+          { key: "fec", label: "RTP 冗余", detail: "FEC / RED" },
+          { key: "route", label: "SFU / TURN", detail: "路径兜底" },
+          { key: "feedback", label: "RTCP 反馈", detail: "PLI / TCC" },
+        ].map((node) => (
+          <div
+            className={`weaknet-node ${node.key === active.locus ? "active" : ""}`}
+            key={node.key}
+          >
+            <span>{node.label}</span>
+            <strong>{node.detail}</strong>
+          </div>
+        ))}
+        <div className="weaknet-media-line"><span>RTP/SRTP media through congested path</span></div>
+        <div className="weaknet-feedback-line"><span>RTCP control feedback</span></div>
+      </div>
+
+      <div className="strategy-card-grid">
+        {ordered.map((strategy, index) => {
+          const revealed = revealCount >= strategy.defaultRank;
+          return (
+            <button
+              className={`${toneClass(strategy.tone)} ${index === activeIndex ? "active" : ""} ${revealed ? "revealed" : ""}`}
+              key={strategy.label}
+              type="button"
+              onClick={() => setActiveIndex(index)}
+            >
+              <span>{revealed ? `#${strategy.defaultRank}` : "?"}</span>
+              <strong>{strategy.label}</strong>
+              <em>{revealed ? "教师参考顺序" : "Enter 揭示排序"}</em>
+            </button>
+          );
+        })}
+      </div>
+
+      <aside className={`strategy-inspector ${toneClass(active.tone)}`}>
+        <div>
+          <strong>{active.label}</strong>
+          <span>{locusLabel} · 参考优先级 {revealCount >= active.defaultRank ? `#${active.defaultRank}` : "待揭示"}</span>
+        </div>
+        <section>
+          <p><span>为什么</span>{active.rationale}</p>
+          <p><span>副作用</span>{active.sideEffect}</p>
+        </section>
+      </aside>
+    </div>
+  );
+}
+
+export function LatencyOptimizationChecklist({
+  data,
+  interactionCommand,
+}: InteractiveVisualProps<LatencyOptimizationChecklistData>) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const active = data.stages[activeIndex];
+
+  useEffect(() => {
+    if (interactionCommand.tick === 0) return;
+    setActiveIndex((value) => wrap(value + interactionCommand.direction, data.stages.length));
+  }, [data.stages.length, interactionCommand.direction, interactionCommand.tick]);
+
+  return (
+    <div className="latency-optimization-checklist">
+      <div className="latency-sequence">
+        <div className="latency-sequence-head">
+          <span>端到端序列</span>
+          <strong>{data.goal}</strong>
+          <em>{data.principle}</em>
+        </div>
+        <div className="latency-sequence-rail">
+          {data.stages.map((stage, index) => (
+            <button
+              className={`${toneClass(stage.tone)} ${index === activeIndex ? "active" : ""}`}
+              key={stage.label}
+              type="button"
+              onClick={() => setActiveIndex(index)}
+            >
+              <span>{stage.actor}</span>
+              <strong>{stage.event}</strong>
+              <em>{stage.wait}</em>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="latency-stage-rail">
+        {data.stages.map((stage, index) => (
+          <button
+            className={`${toneClass(stage.tone)} ${index === activeIndex ? "active" : ""}`}
+            key={stage.label}
+            type="button"
+            onClick={() => setActiveIndex(index)}
+          >
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            <strong>{stage.label}</strong>
+            <em>{stage.metric}</em>
+          </button>
+        ))}
+      </div>
+
+      <aside className={`latency-check-card ${toneClass(active.tone)}`}>
+        <div>
+          <ListChecks size={28} strokeWidth={1.6} />
+          <strong>{active.label}</strong>
+          <span>{active.metric}</span>
+        </div>
+        <section>
+          <span>{active.target}</span>
+          <strong>{active.optimize}</strong>
+        </section>
+        <ul>
+          {active.checks.map((check) => (
+            <li key={check}>
+              <CheckCircle2 size={17} strokeWidth={1.8} />
+              {check}
+            </li>
+          ))}
+        </ul>
+      </aside>
+    </div>
+  );
+}
+
+export function SecurityPrivacyBoundary({
+  data,
+  interactionCommand,
+}: InteractiveVisualProps<SecurityPrivacyBoundaryData>) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const active = data.zones[activeIndex];
+  const conflict = data.conflicts[activeIndex % data.conflicts.length];
+
+  useEffect(() => {
+    if (interactionCommand.tick === 0) return;
+    setActiveIndex((value) => wrap(value + interactionCommand.direction, data.zones.length));
+  }, [data.zones.length, interactionCommand.direction, interactionCommand.tick]);
+
+  return (
+    <div className="security-privacy-boundary">
+      <div className="security-boundary-map">
+        {data.zones.map((zone, index) => (
+          <button
+            className={`${toneClass(zone.tone)} ${index === activeIndex ? "active" : ""}`}
+            key={zone.label}
+            type="button"
+            onClick={() => setActiveIndex(index)}
+          >
+            <span>{zone.owner}</span>
+            <strong>{zone.label}</strong>
+            <em>{zone.protects}</em>
+          </button>
+        ))}
+      </div>
+
+      <div className={`security-data-lanes ${toneClass(active.tone)}`}>
+        <span>业务信令 / SDP / ICE</span>
+        <span>SRTP / DTLS media</span>
+        <span>Stats / logs / events</span>
+        <span>E2EE content boundary</span>
+      </div>
+
+      <aside className={`security-boundary-inspector ${toneClass(active.tone)}`}>
+        <div>
+          <ShieldCheck size={27} strokeWidth={1.6} />
+          <strong>{active.label}</strong>
+          <span>{active.exposed}</span>
+        </div>
+        <section>
+          <span>边界动作</span>
+          <strong>{active.action}</strong>
+        </section>
+        <article className={toneClass(conflict.tone)}>
+          <span>{conflict.label}</span>
+          <strong>{conflict.question}</strong>
+          <p>{conflict.tradeoff}</p>
+        </article>
+      </aside>
+    </div>
+  );
+}
+
+export function DeploymentTopology({
+  data,
+  interactionCommand,
+}: InteractiveVisualProps<DeploymentTopologyData>) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const mode = data.modes[activeIndex];
+
+  useEffect(() => {
+    if (interactionCommand.tick === 0) return;
+    setActiveIndex((value) => wrap(value + interactionCommand.direction, data.modes.length));
+  }, [data.modes.length, interactionCommand.direction, interactionCommand.tick]);
+
+  return (
+    <div className="deployment-topology">
+      <div className="deployment-mode-tabs">
+        {data.modes.map((item, index) => (
+          <button
+            className={`${toneClass(item.tone)} ${index === activeIndex ? "active" : ""}`}
+            key={item.label}
+            type="button"
+            onClick={() => setActiveIndex(index)}
+          >
+            <strong>{item.label}</strong>
+            <span>{item.fit}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className={`deployment-map ${toneClass(mode.tone)}`}>
+        <div className="deployment-route-title">
+          <Network size={24} strokeWidth={1.6} />
+          <strong>{mode.route}</strong>
+        </div>
+        <div className="deployment-node-row">
+          {mode.nodes.map((node, index) => (
+            <div className="deployment-node" key={`${node}-${index}`}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <strong>{node}</strong>
+              <em>{mode.links[index] ?? "media/control"}</em>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <aside className={`deployment-inspector ${toneClass(mode.tone)}`}>
+        <section>
+          <span>优势</span>
+          <strong>{mode.strength}</strong>
+        </section>
+        <section>
+          <span>代价</span>
+          <strong>{mode.cost}</strong>
+        </section>
+      </aside>
+    </div>
+  );
+}
+
+export function TestingToolchain({
+  data,
+  interactionCommand,
+}: InteractiveVisualProps<TestingToolchainData>) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const tool = data.tools[activeIndex];
+
+  useEffect(() => {
+    if (interactionCommand.tick === 0) return;
+    setActiveIndex((value) => wrap(value + interactionCommand.direction, data.tools.length));
+  }, [data.tools.length, interactionCommand.direction, interactionCommand.tick]);
+
+  return (
+    <div className="testing-toolchain">
+      <div className="testing-pipeline">
+        {data.tools.map((item, index) => (
+          <button
+            className={`${toneClass(item.tone)} ${index === activeIndex ? "active" : ""}`}
+            key={item.label}
+            type="button"
+            onClick={() => setActiveIndex(index)}
+          >
+            <span>{item.stage}</span>
+            <strong>{item.label}</strong>
+            <em>{item.evidence}</em>
+          </button>
+        ))}
+      </div>
+
+      <aside className={`testing-evidence-card ${toneClass(tool.tone)}`}>
+        <div>
+          <Activity size={27} strokeWidth={1.6} />
+          <span>{tool.stage}</span>
+          <strong>{tool.command}</strong>
+        </div>
+        <section>
+          <span>能抓住的问题</span>
+          <strong>{tool.catches}</strong>
+        </section>
+      </aside>
+    </div>
+  );
+}
+
+export function MonitoringDashboard({
+  data,
+  interactionCommand,
+}: InteractiveVisualProps<MonitoringDashboardData>) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const metric = data.metrics[activeIndex];
+
+  useEffect(() => {
+    if (interactionCommand.tick === 0) return;
+    setActiveIndex((value) => wrap(value + interactionCommand.direction, data.metrics.length));
+  }, [data.metrics.length, interactionCommand.direction, interactionCommand.tick]);
+
+  return (
+    <div className="monitoring-dashboard">
+      <div className="monitoring-samples">
+        {data.samples.map((sample) => (
+          <article className={`sample-${sample.status}`} key={sample.label}>
+            <span>{sample.label}</span>
+            <strong>{sample.value}</strong>
+          </article>
+        ))}
+      </div>
+
+      <div className="monitoring-metrics">
+        {data.metrics.map((item, index) => (
+          <button
+            className={`${toneClass(item.tone)} ${index === activeIndex ? "active" : ""}`}
+            key={item.label}
+            type="button"
+            onClick={() => setActiveIndex(index)}
+          >
+            <span>{item.label}</span>
+            <strong>{item.formula}</strong>
+          </button>
+        ))}
+      </div>
+
+      <aside className={`monitoring-inspector ${toneClass(metric.tone)}`}>
+        <Gauge size={28} strokeWidth={1.6} />
+        <section>
+          <span>健康 / 退化</span>
+          <strong>{metric.healthy} · {metric.degraded}</strong>
+          <p>{metric.meaning}</p>
+        </section>
+      </aside>
+    </div>
+  );
+}
+
+export function SloLadder({
+  data,
+  interactionCommand,
+}: InteractiveVisualProps<SloLadderData>) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const tier = data.tiers[activeIndex];
+
+  useEffect(() => {
+    if (interactionCommand.tick === 0) return;
+    setActiveIndex((value) => wrap(value + interactionCommand.direction, data.tiers.length));
+  }, [data.tiers.length, interactionCommand.direction, interactionCommand.tick]);
+
+  return (
+    <div className="slo-ladder">
+      <div className="slo-tier-grid">
+        {data.tiers.map((item, index) => (
+          <button
+            className={`${toneClass(item.tone)} ${index === activeIndex ? "active" : ""}`}
+            key={item.label}
+            type="button"
+            onClick={() => setActiveIndex(index)}
+          >
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            <strong>{item.label}</strong>
+            <em>{item.promise}</em>
+          </button>
+        ))}
+      </div>
+
+      <aside className={`slo-inspector ${toneClass(tier.tone)}`}>
+        <section>
+          <span>指标</span>
+          <strong>{tier.indicator}</strong>
+        </section>
+        <section>
+          <span>告警</span>
+          <strong>{tier.alert}</strong>
+        </section>
+        <section>
+          <span>降级动作</span>
+          <strong>{tier.degrade}</strong>
+        </section>
+      </aside>
+    </div>
+  );
+}
+
+export function IncidentTimeline({
+  data,
+  interactionCommand,
+}: InteractiveVisualProps<IncidentTimelineData>) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const step = data.steps[activeIndex];
+
+  useEffect(() => {
+    if (interactionCommand.tick === 0) return;
+    setActiveIndex((value) => wrap(value + interactionCommand.direction, data.steps.length));
+  }, [data.steps.length, interactionCommand.direction, interactionCommand.tick]);
+
+  return (
+    <div className="incident-timeline">
+      <div className="incident-head">
+        <Route size={25} strokeWidth={1.6} />
+        <strong>{data.incident}</strong>
+      </div>
+
+      <div className="incident-steps">
+        {data.steps.map((item, index) => (
+          <button
+            className={`${toneClass(item.tone)} ${index === activeIndex ? "active" : ""}`}
+            key={`${item.time}-${item.label}`}
+            type="button"
+            onClick={() => setActiveIndex(index)}
+          >
+            <span>{item.time}</span>
+            <strong>{item.label}</strong>
+          </button>
+        ))}
+      </div>
+
+      <aside className={`incident-detail ${toneClass(step.tone)}`}>
+        <section>
+          <span>现象</span>
+          <strong>{step.symptom}</strong>
+        </section>
+        <section>
+          <span>证据</span>
+          <strong>{step.evidence}</strong>
+        </section>
+        <section>
+          <span>假设</span>
+          <strong>{step.hypothesis}</strong>
+        </section>
+        <section>
+          <span>动作</span>
+          <strong>{step.action}</strong>
+        </section>
+      </aside>
+    </div>
+  );
+}
+
+export function PracticeRunbook({
+  data,
+  interactionCommand,
+}: InteractiveVisualProps<PracticeRunbookData>) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const active = data.steps[activeIndex];
+
+  useEffect(() => {
+    if (interactionCommand.tick === 0) return;
+    setActiveIndex((value) => wrap(value + interactionCommand.direction, data.steps.length));
+  }, [data.steps.length, interactionCommand.direction, interactionCommand.tick]);
+
+  return (
+    <div className="practice-runbook">
+      <div className="practice-topology">
+        {data.topology.map((node) => (
+          <button
+            className={`${toneClass(node.tone)} ${node.label === active.focusNode ? "active" : ""}`}
+            key={node.label}
+            type="button"
+          >
+            <span>{node.label}</span>
+            <strong>{node.role}</strong>
+          </button>
+        ))}
+        <i className="practice-signal-line">WebSocket signaling</i>
+        <i className="practice-media-line">SRTP media path</i>
+      </div>
+
+      <div className="practice-step-rail">
+        {data.steps.map((step, index) => (
+          <button
+            className={`${toneClass(step.tone)} ${index === activeIndex ? "active" : ""}`}
+            key={step.label}
+            type="button"
+            onClick={() => setActiveIndex(index)}
+          >
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            <strong>{step.label}</strong>
+            <em>{step.command}</em>
+          </button>
+        ))}
+      </div>
+
+      <aside className={`practice-inspector ${toneClass(active.tone)}`}>
+        <div>
+          <RadioTower size={27} strokeWidth={1.6} />
+          <span>{active.focusNode}</span>
+          <strong>{active.outcome}</strong>
+        </div>
+        <section>
+          <span>课堂检查</span>
+          <strong>{active.check}</strong>
+        </section>
+      </aside>
+    </div>
+  );
+}
+
+export function SignalingServerWalkthrough({
+  data,
+  interactionCommand,
+}: InteractiveVisualProps<SignalingServerWalkthroughData>) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const stage = data.stages[activeIndex];
+
+  useEffect(() => {
+    if (interactionCommand.tick === 0) return;
+    setActiveIndex((value) => wrap(value + interactionCommand.direction, data.stages.length));
+  }, [data.stages.length, interactionCommand.direction, interactionCommand.tick]);
+
+  return (
+    <div className="signaling-server-walkthrough">
+      <div className="code-stage-tabs">
+        {data.stages.map((item, index) => (
+          <button
+            className={`${toneClass(item.tone)} ${index === activeIndex ? "active" : ""}`}
+            key={item.label}
+            type="button"
+            onClick={() => setActiveIndex(index)}
+          >
+            <span>{String(index + 1).padStart(2, "0")} · {item.label}</span>
+            <strong>{item.trigger}</strong>
+          </button>
+        ))}
+      </div>
+
+      <div className={`signaling-code-board ${toneClass(stage.tone)}`}>
+        <div className="signaling-relay-map">
+          <span>Peer A</span>
+          <i>{stage.relay}</i>
+          <span>Peer B</span>
+        </div>
+        <pre aria-label={`${stage.label} code`}>
+          {stage.code.map((line) => (
+            <code key={line}>{line}</code>
+          ))}
+        </pre>
+      </div>
+
+      <aside className={`code-explain-card ${toneClass(stage.tone)}`}>
+        <section>
+          <span>状态</span>
+          <strong>{stage.state}</strong>
+        </section>
+        <section>
+          <span>生产守护</span>
+          <strong>{stage.guardrail}</strong>
+        </section>
+      </aside>
+    </div>
+  );
+}
+
+export function BrowserP2PWalkthrough({
+  data,
+  interactionCommand,
+}: InteractiveVisualProps<BrowserP2PWalkthroughData>) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const step = data.sequence[activeIndex];
+
+  useEffect(() => {
+    if (interactionCommand.tick === 0) return;
+    setActiveIndex((value) => wrap(value + interactionCommand.direction, data.sequence.length));
+  }, [data.sequence.length, interactionCommand.direction, interactionCommand.tick]);
+
+  return (
+    <div className="browser-p2p-walkthrough">
+      <div className="browser-sequence">
+        {data.sequence.map((item, index) => (
+          <button
+            className={`${toneClass(item.tone)} ${index === activeIndex ? "active" : ""}`}
+            key={item.label}
+            type="button"
+            onClick={() => setActiveIndex(index)}
+          >
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            <strong>{item.label}</strong>
+            <em>{item.api}</em>
+          </button>
+        ))}
+      </div>
+
+      <div className={`browser-code-flow ${toneClass(step.tone)}`}>
+        <div className="browser-video-mock">
+          <section className={activeIndex <= 1 ? "active" : ""}>
+            <span>local video</span>
+            <strong>capture</strong>
+          </section>
+          <section className={activeIndex >= 4 ? "active" : ""}>
+            <span>remote video</span>
+            <strong>ontrack</strong>
+          </section>
+        </div>
+        <pre aria-label={`${step.label} code`}>
+          <code>{step.code}</code>
+        </pre>
+      </div>
+
+      <aside className={`browser-inspector ${toneClass(step.tone)}`}>
+        <section>
+          <span>输出</span>
+          <strong>{step.output}</strong>
+        </section>
+        <section>
+          <span>证据</span>
+          <strong>{step.evidence}</strong>
+        </section>
+      </aside>
+    </div>
+  );
+}
+
+export function SfuCodeWalkthrough({
+  data,
+  interactionCommand,
+}: InteractiveVisualProps<SfuCodeWalkthroughData>) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const concept = data.concepts[activeIndex];
+
+  useEffect(() => {
+    if (interactionCommand.tick === 0) return;
+    setActiveIndex((value) => wrap(value + interactionCommand.direction, data.concepts.length));
+  }, [data.concepts.length, interactionCommand.direction, interactionCommand.tick]);
+
+  return (
+    <div className="sfu-code-walkthrough">
+      <div className={`sfu-code-topology ${toneClass(concept.tone)}`}>
+        <div className="sfu-code-node sender">
+          <span>教师端</span>
+          <strong>Producer</strong>
+        </div>
+        <div className="sfu-code-node core">
+          <Layers3 size={24} strokeWidth={1.6} />
+          <span>SFU Router</span>
+          <strong>{concept.label}</strong>
+          <em>{concept.direction}</em>
+        </div>
+        <div className="sfu-code-receivers">
+          {data.receivers.map((receiver) => (
+            <article key={receiver.label}>
+              <span>{receiver.label}</span>
+              <strong>{receiver.subscription}</strong>
+              <em>{receiver.reason}</em>
+            </article>
+          ))}
+        </div>
+        <i className="sfu-uplink">上行一次</i>
+        <i className="sfu-downlink">按需下发</i>
+      </div>
+
+      <div className="sfu-concept-rail">
+        {data.concepts.map((item, index) => (
+          <button
+            className={`${toneClass(item.tone)} ${index === activeIndex ? "active" : ""}`}
+            key={item.label}
+            type="button"
+            onClick={() => setActiveIndex(index)}
+          >
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            <strong>{item.label}</strong>
+            <em>{item.api}</em>
+          </button>
+        ))}
+      </div>
+
+      <aside className={`sfu-code-card ${toneClass(concept.tone)}`}>
+        <pre aria-label={`${concept.label} code`}>
+          <code>{concept.code}</code>
+        </pre>
+        <section>
+          <span>媒体效果</span>
+          <strong>{concept.mediaEffect}</strong>
+        </section>
+      </aside>
+    </div>
+  );
+}
+
+export function ExperimentReview({
+  data,
+  interactionCommand,
+}: InteractiveVisualProps<ExperimentReviewData>) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const condition = data.conditions[activeIndex];
+
+  useEffect(() => {
+    if (interactionCommand.tick === 0) return;
+    setActiveIndex((value) => wrap(value + interactionCommand.direction, data.conditions.length));
+  }, [data.conditions.length, interactionCommand.direction, interactionCommand.tick]);
+
+  return (
+    <div className="experiment-review">
+      <div className="experiment-condition-grid">
+        {data.conditions.map((item, index) => (
+          <button
+            className={`${toneClass(item.tone)} ${index === activeIndex ? "active" : ""}`}
+            key={item.label}
+            type="button"
+            onClick={() => setActiveIndex(index)}
+          >
+            <span>{item.label}</span>
+            <strong>{item.network}</strong>
+          </button>
+        ))}
+      </div>
+
+      <div className={`experiment-metric-board ${toneClass(condition.tone)}`}>
+        <section>
+          <Clock3 size={26} strokeWidth={1.6} />
+          <span>体验预测</span>
+          <strong>{condition.likelyExperience}</strong>
+        </section>
+        <div>
+          {condition.expectedStats.map((metric) => (
+            <article key={metric.label}>
+              <span>{metric.label}</span>
+              <strong>{metric.value}</strong>
+            </article>
+          ))}
+        </div>
+        <p>{condition.explanation}</p>
+      </div>
+
+      <aside className="experiment-assignment">
+        {data.assignment.map((item) => (
+          <article key={item.label}>
+            <span>{item.label}</span>
+            <strong>{item.output}</strong>
+          </article>
+        ))}
+      </aside>
+    </div>
+  );
+}
+
+export function EcosystemMap({
+  data,
+  interactionCommand,
+}: InteractiveVisualProps<EcosystemMapData>) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const route = data.routes[activeIndex];
+  const scenario = data.scenarios[activeIndex % data.scenarios.length];
+
+  useEffect(() => {
+    if (interactionCommand.tick === 0) return;
+    setActiveIndex((value) => wrap(value + interactionCommand.direction, data.routes.length));
+  }, [data.routes.length, interactionCommand.direction, interactionCommand.tick]);
+
+  return (
+    <div className="ecosystem-map">
+      <div className="ecosystem-quadrants">
+        {data.routes.map((item, index) => (
+          <button
+            className={`${toneClass(item.tone)} ${index === activeIndex ? "active" : ""}`}
+            key={item.label}
+            type="button"
+            onClick={() => setActiveIndex(index)}
+          >
+            <span>{item.label}</span>
+            <strong>{item.examples}</strong>
+            <em>{item.decisionSignal}</em>
+          </button>
+        ))}
+      </div>
+
+      <aside className={`ecosystem-decision ${toneClass(route.tone)}`}>
+        <section>
+          <Network size={27} strokeWidth={1.6} />
+          <span>适合</span>
+          <strong>{route.bestFor}</strong>
+        </section>
+        <section>
+          <span>代价</span>
+          <strong>{route.tradeoff}</strong>
+        </section>
+        <article>
+          <span>{scenario.label}</span>
+          <strong>{scenario.recommendation}</strong>
+          <p>{scenario.rationale}</p>
+        </article>
+      </aside>
+    </div>
+  );
+}
+
+export function StandardsTimeline({
+  data,
+  interactionCommand,
+}: InteractiveVisualProps<StandardsTimelineData>) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const milestone = data.milestones[activeIndex];
+
+  useEffect(() => {
+    if (interactionCommand.tick === 0) return;
+    setActiveIndex((value) => wrap(value + interactionCommand.direction, data.milestones.length));
+  }, [data.milestones.length, interactionCommand.direction, interactionCommand.tick]);
+
+  return (
+    <div className="standards-timeline">
+      <div className="standards-rail">
+        {data.milestones.map((item, index) => (
+          <button
+            className={`${toneClass(item.tone)} ${index === activeIndex ? "active" : ""}`}
+            key={`${item.year}-${item.label}`}
+            type="button"
+            onClick={() => setActiveIndex(index)}
+          >
+            <span>{item.year}</span>
+            <strong>{item.label}</strong>
+            <em>{item.detail}</em>
+          </button>
+        ))}
+      </div>
+
+      <aside className={`standards-focus ${toneClass(milestone.tone)}`}>
+        <GitBranch size={27} strokeWidth={1.6} />
+        <section>
+          <span>状态</span>
+          <strong>{milestone.status}</strong>
+        </section>
+      </aside>
+
+      <div className="standards-trend-grid">
+        {data.trends.map((trend) => (
+          <article className={toneClass(trend.tone)} key={trend.label}>
+            <span>{trend.label}</span>
+            <strong>{trend.question}</strong>
+            <p>{trend.tension}</p>
+          </article>
+        ))}
+      </div>
+
+      <div className="standards-exit-card">
+        {data.exitPrompt.map((item) => (
+          <span key={item}>
+            <CheckCircle2 size={16} strokeWidth={1.8} />
+            {item}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function ReferenceFigure({
+  data,
+  interactionCommand,
+}: InteractiveVisualProps<ReferenceFigureData>) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const active = data.figures[activeIndex] ?? data.figures[0];
+
+  useEffect(() => {
+    if (data.figures.length <= 1 || interactionCommand.tick === 0) return;
+    setActiveIndex((value) => wrap(value + interactionCommand.direction, data.figures.length));
+  }, [data.figures.length, interactionCommand.direction, interactionCommand.tick]);
+
+  useEffect(() => {
+    setActiveIndex((value) => Math.min(value, Math.max(data.figures.length - 1, 0)));
+  }, [data.figures.length]);
+
+  if (!active) return null;
+
+  return (
+    <div className={`reference-figure ${toneClass(active.tone)}`}>
+      <div className="reference-figure-tabs" role="tablist" aria-label="参考图切换">
+        {data.figures.map((figure, index) => (
+          <button
+            className={index === activeIndex ? `active ${toneClass(figure.tone)}` : toneClass(figure.tone)}
+            key={figure.src}
+            type="button"
+            role="tab"
+            aria-selected={index === activeIndex}
+            onClick={() => setActiveIndex(index)}
+          >
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            {figure.badge ?? figure.title}
+          </button>
+        ))}
+      </div>
+
+      <div className="reference-figure-body">
+        <figure className="reference-figure-stage">
+          <img src={active.src} alt={active.alt} />
+        </figure>
+
+        <aside className="reference-figure-notes">
+          <div className="figure-kicker">
+            <span>{active.badge ?? `图 ${activeIndex + 1}`}</span>
+            <em>
+              {activeIndex + 1} / {data.figures.length}
+            </em>
+          </div>
+          <strong>{active.title}</strong>
+          <p>{active.caption}</p>
+          <ul>
+            {active.takeaways.map((takeaway) => (
+              <li key={takeaway}>{takeaway}</li>
+            ))}
+          </ul>
+          {data.instruction ? <small>{data.instruction}</small> : null}
+        </aside>
       </div>
     </div>
   );
