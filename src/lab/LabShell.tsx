@@ -1,5 +1,6 @@
 import { ArrowLeft, FlaskConical } from "lucide-react";
 import { useState } from "react";
+import { DevicePickerModal } from "./DevicePickerModal";
 import { MechanismPanel } from "./MechanismPanel";
 import { QosPanel } from "./QosPanel";
 import { RoomBar } from "./RoomBar";
@@ -40,7 +41,7 @@ export function LabShell() {
         }}
         onJoin={join}
         onLeave={room.leaveRoom}
-        onRequestDevices={room.requestRealMedia}
+        onRequestDevices={room.openDevicePicker}
         onRoomChange={(value) => {
           setRoomCode(value);
           room.setRoomId(value);
@@ -111,6 +112,15 @@ export function LabShell() {
           ) : null}
         </aside>
       </section>
+
+      <DevicePickerModal
+        onApply={room.applySelectedDevices}
+        onClose={room.closeDevicePicker}
+        onRefresh={room.openDevicePicker}
+        onSelectionChange={room.setDeviceSelection}
+        picker={room.devicePicker}
+        selection={room.deviceSelection}
+      />
     </main>
   );
 }

@@ -61,6 +61,27 @@ export type LabConnectionStatus =
 
 export type LocalMediaMode = "camera" | "audio-only" | "video-only" | "demo";
 
+export type MediaInputDeviceOption = {
+  deviceId: string;
+  label: string;
+  kind: "audioinput" | "videoinput";
+};
+
+export type MediaDeviceSelection = {
+  audioEnabled: boolean;
+  videoEnabled: boolean;
+  audioDeviceId?: string;
+  videoDeviceId?: string;
+};
+
+export type MediaDevicePickerState = {
+  open: boolean;
+  loading: boolean;
+  error: string | null;
+  audioInputs: MediaInputDeviceOption[];
+  videoInputs: MediaInputDeviceOption[];
+};
+
 export type RtcStatsSnapshot = {
   timestamp: number;
   connection: {

@@ -100,7 +100,8 @@
 
 .lab-room-bar input,
 .lab-control-card input,
-.lab-control-card select {
+.lab-control-card select,
+.lab-device-modal select {
   min-width: 0;
   height: 38px;
   border: 1px solid var(--soft-border);
@@ -111,7 +112,8 @@
 }
 
 .lab-room-bar input,
-.lab-control-card select {
+.lab-control-card select,
+.lab-device-modal select {
   padding: 0 10px;
 }
 
@@ -232,6 +234,74 @@
 .lab-notice {
   border-color: color-mix(in srgb, var(--protocol) 48%, transparent);
   background: color-mix(in srgb, var(--protocol) 9%, transparent);
+}
+
+.lab-device-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(0, 0, 0, 0.58);
+  backdrop-filter: blur(14px);
+}
+
+.lab-device-modal {
+  display: grid;
+  width: min(620px, 100%);
+  gap: 14px;
+  border: 1px solid var(--soft-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--panel) 98%, #000 8%);
+  box-shadow: var(--shadow);
+  padding: 16px;
+}
+
+.lab-device-modal header,
+.lab-device-modal footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.lab-device-modal header div {
+  display: grid;
+  gap: 4px;
+}
+
+.lab-device-modal header span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.lab-device-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.lab-device-grid article {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--soft-border);
+  border-radius: 8px;
+  background: var(--soft-bg);
+}
+
+.lab-device-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+}
+
+.lab-device-toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--signal);
 }
 
 .lab-video-wall {
@@ -606,8 +676,13 @@
   .lab-video-grid,
   .lab-metric-grid,
   .lab-qos-presets,
-  .lab-control-row {
+  .lab-control-row,
+  .lab-device-grid {
     grid-template-columns: 1fr;
+  }
+
+  .lab-device-modal footer {
+    display: grid;
   }
 
   .lab-video-tile {

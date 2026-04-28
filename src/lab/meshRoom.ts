@@ -19,6 +19,9 @@ import {
 import type {
   LabConnectionStatus,
   LocalMediaMode,
+  MediaDevicePickerState,
+  MediaDeviceSelection,
+  MediaInputDeviceOption,
   PeerInfo,
   PeerSessionState,
   QosControlState,
@@ -35,6 +38,12 @@ const createDefaultName = () => `Peer ${Math.floor(Math.random() * 900 + 100)}`;
 const displayNameStorageKey = "rtc-lab-display-name";
 const peerIdStorageKey = "rtc-lab-peer-id";
 const legacyPeerStorageKey = "rtc-lab-peer";
+const deviceSelectionStorageKey = "rtc-lab-device-selection";
+
+const defaultDeviceSelection: MediaDeviceSelection = {
+  audioEnabled: true,
+  videoEnabled: true,
+};
 
 const getSavedDisplayName = () => {
   const savedName = window.localStorage.getItem(displayNameStorageKey);
@@ -63,6 +72,54 @@ const getInitialPeer = (): PeerInfo => {
   };
   return peer;
 };
+
+const getInitialDeviceSelection = (): MediaDeviceSelection => {
+  const saved = window.localStorage.getItem(deviceSelectionStorageKey);
+  if (!saved) return defaultDeviceSelection;
+
+  try {
+    return {
+      ...defaultDeviceSelection,
+      ...(JSON.parse(saved) as Partial<MediaDeviceSelection>),
+    };
+  } catch {
+    window.localStorage.removeItem(deviceSelectionStorageKey);
+    return defaultDeviceSelection;
+  }
+};
+
+const stopStream = (stream: MediaStream | null) => {
+  for (const track of stream?.getTracks() ?? []) track.stop();
+};
+
+const isPermissionDeniedError = (error: unknown) =>
+  error instanceof DOMException &&
+  (error.name === "NotAllowedError" || error.name === "SecurityError");
+
+const deviceLabel = (
+  device: MediaDeviceInfo,
+  index: number,
+  fallback: string,
+) => device.label || `${fallback} ${index + 1}`;
+
+const normalizeDeviceSelection = (
+  selection: MediaDeviceSelection,
+  audioInputs: MediaInputDeviceOption[],
+  videoInputs: MediaInputDeviceOption[],
+): MediaDeviceSelection => ({
+  audioEnabled: audioInputs.length > 0 ? selection.audioEnabled : false,
+  videoEnabled: videoInputs.length > 0 ? selection.videoEnabled : false,
+  audioDeviceId: audioInputs.some(
+    (device) => device.deviceId === selection.audioDeviceId,
+  )
+    ? selection.audioDeviceId
+    : undefined,
+  videoDeviceId: videoInputs.some(
+    (device) => device.deviceId === selection.videoDeviceId,
+  )
+    ? selection.videoDeviceId
+    : undefined,
+});
 
 const createDemoMediaStream = (label: string) => {
   const canvas = document.createElement("canvas");
@@ -123,68 +180,137 @@ const assertMediaDevicesAvailable = () => {
   }
 };
 
+const audioConstraintsFor = (
+  qos: QosControlState,
+  selection: MediaDeviceSelection,
+): MediaTrackConstraints | false => {
+  if (!selection.audioEnabled) return false;
+  return {
+    ...audioConstraintsFromQos(qos.audio),
+    ...(selection.audioDeviceId
+      ? { deviceId: { exact: selection.audioDeviceId } }
+      : {}),
+  };
+};
+
+const videoConstraintsFor = (
+  qos: QosControlState,
+  selection: MediaDeviceSelection,
+): MediaTrackConstraints | false => {
+  if (!selection.videoEnabled) return false;
+  return {
+    ...videoConstraintsFromQos(qos.video),
+    ...(selection.videoDeviceId
+      ? { deviceId: { exact: selection.videoDeviceId } }
+      : {}),
+  };
+};
+
+const requestDevicePermissionProbe = async () => {
+  assertMediaDevicesAvailable();
+  const attempts: MediaStreamConstraints[] = [
+    { audio: true, video: true },
+    { audio: true, video: false },
+    { audio: false, video: true },
+  ];
+
+  for (const constraints of attempts) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      stopStream(stream);
+      return;
+    } catch (error) {
+      if (isPermissionDeniedError(error)) throw error;
+    }
+  }
+};
+
+const enumerateInputDevices = async () => {
+  assertMediaDevicesAvailable();
+  await requestDevicePermissionProbe();
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  const audioInputs = devices
+    .filter((device) => device.kind === "audioinput")
+    .map((device, index) => ({
+      deviceId: device.deviceId,
+      label: deviceLabel(device, index, "麦克风"),
+      kind: "audioinput" as const,
+    }));
+  const videoInputs = devices
+    .filter((device) => device.kind === "videoinput")
+    .map((device, index) => ({
+      deviceId: device.deviceId,
+      label: deviceLabel(device, index, "摄像头"),
+      kind: "videoinput" as const,
+    }));
+  return { audioInputs, videoInputs };
+};
+
 const acquireRealMedia = async (
   qos: QosControlState,
+  selection: MediaDeviceSelection,
 ): Promise<{ stream: MediaStream; mode: LocalMediaMode; message?: string }> => {
   assertMediaDevicesAvailable();
 
+  const audio = audioConstraintsFor(qos, selection);
+  const video = videoConstraintsFor(qos, selection);
+  if (!audio && !video) {
+    throw new Error("请至少启用摄像头或麦克风。");
+  }
+
+  const attempts: Array<{
+    constraints: MediaStreamConstraints;
+    message?: string;
+  }> = [];
+  if (audio && video) {
+    attempts.push({ constraints: { audio, video } });
+  }
+  if (audio) {
+    attempts.push({
+      constraints: { audio, video: false },
+      message: video
+        ? "未能打开所选摄像头，已使用麦克风继续。视频墙会显示本地空位。"
+        : undefined,
+    });
+  }
+  if (video) {
+    attempts.push({
+      constraints: { audio: false, video },
+      message: audio ? "未能打开所选麦克风，已使用摄像头继续。" : undefined,
+    });
+  }
+
   let firstError: unknown = null;
 
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: audioConstraintsFromQos(qos.audio),
-      video: videoConstraintsFromQos(qos.video),
-    });
-    const mode = mediaModeFromStream(stream);
-    return {
-      stream,
-      mode,
-      message: mode === "camera" ? undefined : realMediaNotice(mode),
-    };
-  } catch (error) {
-    firstError = error;
+  for (const attempt of attempts) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia(attempt.constraints);
+      const mode = mediaModeFromStream(stream);
+      return {
+        stream,
+        mode,
+        message: attempt.message ?? (mode === "camera" ? undefined : realMediaNotice(mode)),
+      };
+    } catch (error) {
+      firstError ??= error;
+    }
   }
 
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: audioConstraintsFromQos(qos.audio),
-      video: false,
-    });
-    return {
-      stream,
-      mode: "audio-only",
-      message: "未找到可用摄像头，已用纯音频加入。视频墙会显示本地空位。",
-    };
-  } catch {
-    // Continue to video-only before falling back to the generated demo stream.
-  }
-
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: videoConstraintsFromQos(qos.video),
-    });
-    return {
-      stream,
-      mode: "video-only",
-      message: "未找到可用麦克风，已用纯视频加入。音频开关会保持不可用。",
-    };
-  } catch {
-    throw new Error(`未找到可用摄像头/麦克风：${mediaErrorMessage(firstError)}`);
-  }
+  throw new Error(`未找到可用摄像头/麦克风：${mediaErrorMessage(firstError)}`);
 };
 
 const acquireLocalMedia = async (
   qos: QosControlState,
   label: string,
+  selection: MediaDeviceSelection,
 ): Promise<{ stream: MediaStream; mode: LocalMediaMode; message?: string }> => {
   try {
-    return await acquireRealMedia(qos);
+    return await acquireRealMedia(qos, selection);
   } catch (mediaError) {
     return {
       stream: createDemoMediaStream(label),
       mode: "demo",
-      message: `${mediaErrorMessage(mediaError)}。已自动启用演示视频流，可点击“打开设备”重新触发浏览器权限请求。`,
+      message: `${mediaErrorMessage(mediaError)}。已自动启用演示视频流，可点击“打开设备”选择摄像头/麦克风。`,
     };
   }
 };
@@ -216,6 +342,16 @@ export const useMeshRoom = () => {
   const [sessions, setSessions] = useState<PeerSessionState[]>([]);
   const [qos, setQos] = useState<QosControlState>(defaultQosState);
   const [qosMessage, setQosMessage] = useState("QoS controls are ready.");
+  const [deviceSelection, setDeviceSelectionState] = useState(
+    getInitialDeviceSelection,
+  );
+  const [devicePicker, setDevicePicker] = useState<MediaDevicePickerState>({
+    open: false,
+    loading: false,
+    error: null,
+    audioInputs: [],
+    videoInputs: [],
+  });
 
   const localStreamRef = useRef<MediaStream | null>(null);
   const clientRef = useRef<SignalingClient | null>(null);
@@ -224,10 +360,21 @@ export const useMeshRoom = () => {
   const statsRef = useRef(new Map<string, PeerSessionState["stats"]>());
   const baselinesRef = useRef(new Map<string, StatsBaseline>());
   const qosRef = useRef(qos);
+  const deviceSelectionRef = useRef(deviceSelection);
 
   useEffect(() => {
     qosRef.current = qos;
   }, [qos]);
+
+  useEffect(() => {
+    deviceSelectionRef.current = deviceSelection;
+  }, [deviceSelection]);
+
+  const setDeviceSelection = useCallback((next: MediaDeviceSelection) => {
+    deviceSelectionRef.current = next;
+    setDeviceSelectionState(next);
+    window.localStorage.setItem(deviceSelectionStorageKey, JSON.stringify(next));
+  }, []);
 
   const persistLocalPeer = useCallback((next: PeerInfo) => {
     setLocalPeer(next);
@@ -387,22 +534,73 @@ export const useMeshRoom = () => {
     [refreshSessions],
   );
 
-  const requestRealMedia = useCallback(async () => {
+  const openDevicePicker = useCallback(async () => {
     setError(null);
-    setMediaNotice("正在请求浏览器摄像头/麦克风权限...");
-    setStatus((value) => (value === "idle" || value === "error" ? "media" : value));
+    setDevicePicker((value) => ({
+      ...value,
+      open: true,
+      loading: true,
+      error: null,
+    }));
 
     try {
-      const media = await acquireRealMedia(qosRef.current);
+      const devices = await enumerateInputDevices();
+      const nextSelection = normalizeDeviceSelection(
+        deviceSelectionRef.current,
+        devices.audioInputs,
+        devices.videoInputs,
+      );
+      setDeviceSelection(nextSelection);
+      setDevicePicker({
+        open: true,
+        loading: false,
+        error: null,
+        ...devices,
+      });
+    } catch (deviceError) {
+      setDevicePicker((value) => ({
+        ...value,
+        open: true,
+        loading: false,
+        error:
+          deviceError instanceof Error
+            ? deviceError.message
+            : "无法读取摄像头/麦克风列表。",
+      }));
+    }
+  }, [setDeviceSelection]);
+
+  const closeDevicePicker = useCallback(() => {
+    setDevicePicker((value) => ({ ...value, open: false, error: null }));
+  }, []);
+
+  const applySelectedDevices = useCallback(async () => {
+    setError(null);
+    setMediaNotice("正在打开所选摄像头/麦克风...");
+    setStatus((value) => (value === "idle" || value === "error" ? "media" : value));
+    setDevicePicker((value) => ({ ...value, loading: true, error: null }));
+
+    try {
+      const media = await acquireRealMedia(
+        qosRef.current,
+        deviceSelectionRef.current,
+      );
       await replaceLocalStream(
         media.stream,
         media.mode,
         media.message ?? realMediaNotice(media.mode),
       );
+      setDevicePicker((value) => ({ ...value, open: false, loading: false }));
     } catch (mediaError) {
+      const message = `${mediaErrorMessage(mediaError)}。请检查浏览器站点权限和系统摄像头/麦克风权限，或选择其他设备。`;
       setMediaNotice(
-        `${mediaErrorMessage(mediaError)}。请检查浏览器站点权限和系统摄像头/麦克风权限，然后再次点击“打开设备”。`,
+        message,
       );
+      setDevicePicker((value) => ({
+        ...value,
+        loading: false,
+        error: message,
+      }));
     } finally {
       setStatus((value) =>
         value === "media" ? (clientRef.current ? "joined" : "idle") : value,
@@ -434,7 +632,11 @@ export const useMeshRoom = () => {
       setRoomId(nextRoomId.trim());
 
       try {
-        const media = await acquireLocalMedia(qosRef.current, nextPeer.displayName);
+        const media = await acquireLocalMedia(
+          qosRef.current,
+          nextPeer.displayName,
+          deviceSelectionRef.current,
+        );
         await replaceLocalStream(media.stream, media.mode, media.message ?? null);
         if (qosRef.current.codec.preferredVideoCodec) {
           const nextQos = {
@@ -583,8 +785,13 @@ export const useMeshRoom = () => {
       if (!localStreamRef.current) return;
 
       try {
+        const audioConstraints = audioConstraintsFor(next, deviceSelectionRef.current);
+        if (!audioConstraints) {
+          setQosMessage("Microphone is disabled in device selection.");
+          return;
+        }
         const replacement = await navigator.mediaDevices.getUserMedia({
-          audio: audioConstraintsFromQos(next.audio),
+          audio: audioConstraints,
           video: false,
         });
         const [newAudioTrack] = replacement.getAudioTracks();
@@ -675,13 +882,18 @@ export const useMeshRoom = () => {
     sessions,
     qos,
     qosMessage,
+    devicePicker,
+    deviceSelection,
     roomStats,
     setRoomId,
     setDisplayName: (displayName: string) =>
       persistLocalPeer({ ...localPeer, displayName }),
+    setDeviceSelection,
     joinRoom,
     leaveRoom,
-    requestRealMedia,
+    openDevicePicker,
+    closeDevicePicker,
+    applySelectedDevices,
     toggleAudio,
     toggleVideo,
     updateVideoQos,
