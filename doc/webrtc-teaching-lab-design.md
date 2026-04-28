@@ -339,11 +339,11 @@ type RtcStatsSnapshot = {
 ### 6.2 派生指标口径
 
 - 码率：`8 * delta(bytesSent|bytesReceived) / deltaTime`。
-- 丢包率：`packetsLost / (packetsLost + packetsReceived)`，分母为 0 时显示 `N/A`。
+- 丢包率：优先使用相邻两次 `getStats()` 的 `packetsLost` / `packetsReceived` 增量计算当前窗口；首帧或分母为 0 时显示 `N/A`，必要时才退回累计口径。
 - 平均 jitter buffer delay：`jitterBufferDelay / jitterBufferEmittedCount`。
 - 平均 RTT：优先使用 selected candidate pair 的 `currentRoundTripTime`，否则使用 remote inbound/outbound RTP report。
 - FPS：优先使用 stats 中的 `framesPerSecond`，缺失时用 `delta(framesDecoded|framesSent) / deltaTime` 估算。
-- codec：通过 RTP report 的 `codecId` 关联 codec report，显示 `mimeType` 和 `sdpFmtpLine` 的关键摘要。
+- codec：通过 RTP report 的 `codecId` 关联 codec report；若浏览器不暴露 `codecId`，退回 report 上的 `mimeType`。UI 只显示课堂可读的 codec 名称。
 
 ### 6.3 房间汇总
 
@@ -390,7 +390,7 @@ type QosControlState = {
 - `maxBitrate`、`maxFramerate`、`scaleResolutionDownBy`、`degradationPreference`：对所有 active video `RTCRtpSender` 调用 `sender.setParameters()`。
 - `contentHint`：设置本地 video track 的 `contentHint`。
 - AEC/NS/AGC：通过重新采集音频 track 生效；替换到所有 active senders 时使用 `replaceTrack()`。
-- codec preference：展示可用 codec 列表，选择后提示需要重启通话或重新入房，v1 不做多人在线 codec renegotiation。
+- codec preference：展示当前浏览器 `RTCRtpSender.getCapabilities("video")` 支持的 codec 列表；选择后通过 video transceiver `setCodecPreferences()` 影响下一次 offer/answer。已在通话中修改时提示需要离开并重新加入，v1 不做多人在线 codec renegotiation。
 
 ### 7.2 教学观察与模拟项
 
@@ -431,15 +431,19 @@ flowchart LR
 
 - 房间码输入/复制。
 - 本地显示名。
+- 信令服务器地址输入，默认 `ws://localhost:8787`，加入房间前可改为局域网或部署后的 WebSocket 地址。
 - 加入/离开按钮。
+- 打开设备按钮：可在加入前主动触发浏览器摄像头/麦克风权限，也可在已加入且处于 `demo`、`audio-only` 或 `video-only` 时重新请求真实设备并替换发送 track。
 - 当前人数与容量：`3 / 4`。
 - 当前 Mesh 连接数：例如 `3 条本端连接 / 6 条全房间连接`。
 - 信令连接状态。
+- 当前本地媒体模式：`camera`、`audio-only`、`video-only` 或 `demo`。
 
 ### 8.2 视频墙
 
 - 最多 4 个固定 tile。
 - 本地 tile 固定在第一个位置。
+- 视频墙提供统一画幅拖拽控制，便于课堂演示 4:3、16:9、21:9 等窗口比例对布局和观感的影响。
 - 每个远端 tile 显示 displayName、连接状态、静音/关摄像头状态。
 - tile 内显示轻量指标：RTT、loss、FPS、codec。
 - 空 tile 显示可加入容量，不做复杂占位装饰。
@@ -467,6 +471,8 @@ flowchart LR
 | 7. 离开清理 | 关闭一个标签页 | tile 移除、连接数下降、stats 停止 | 生命周期清理和可观测性 |
 
 如果课堂网络或摄像头资源不稳定，演示可以降级为 2 个标签页：先讲通话链路，再讲 QoS 控件和 stats 面板。4 人演示只用于说明 Mesh 成本，不作为每节课必须跑满的步骤。
+
+从 slides 进入实验台有两个入口：直接访问 `#/lab`，或点击 slides 底部控制栏的 `Lab` 按钮。回到课程则点击实验台顶部的“返回课程”。
 
 ## 9. 实施步骤
 
@@ -520,7 +526,7 @@ flowchart LR
 - 新增 `QosPanel`。
 - presets 应用到所有 active video senders。
 - 音频 AEC/NS/AGC 改动时重新采集音频 track 并 replace 到所有 senders。
-- codec preference 只设置 pending state，提示重启通话。
+- codec preference 设置 pending state，并在创建新的 peer session 时写入 video transceiver 的 codec preferences；通话中修改仍提示重新入房。
 - Mechanism tab 展示 NACK/FEC/PLC/jitter buffer 的证据和模拟。
 
 ### 9.7 验收与收尾
@@ -562,7 +568,7 @@ flowchart LR
 - 切换 `degradationPreference` 后，面板能解释保帧率和保清晰度的取舍。
 - 改变 `contentHint` 后，UI 显示当前 hint。
 - AEC/NS/AGC 切换后，新音频 track 能替换到所有 peer sessions。
-- codec 选择显示为 pending，并提示需要重启通话。
+- codec 选择显示为 pending，并提示需要重启通话；重新入房后 stats 中的 codec 应反映协商结果。
 
 ### 10.4 课堂验收
 
@@ -576,6 +582,7 @@ flowchart LR
 | 风险 | 表现 | 降级策略 |
 |---|---|---|
 | 多标签页摄像头资源冲突 | 后加入标签页无法采集摄像头 | 允许只音频加入，或提示关闭其他标签页摄像头 |
+| 机器没有摄像头/麦克风 | 浏览器返回 `Requested device not found` | 自动创建本地演示视频流并继续加入房间，状态栏显示 `demo`；教师可点击“打开设备”重新触发权限请求 |
 | 字段浏览器不支持 | 某些 stats 一直为空 | 显示 `N/A`，机制解释不依赖单一字段 |
 | 多人同时加入造成 offer collision | 连接状态卡住 | 使用 peerId tie breaker 和重试按钮 |
 | 本机 CPU 压力高 | 4 人视频 FPS 下降 | 默认低码率，提供音频优先 preset |

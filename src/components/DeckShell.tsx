@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Moon, PanelRightOpen, Sun } from "lucide-react";
+import { ChevronLeft, ChevronRight, FlaskConical, Moon, PanelRightOpen, Sun } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { InteractionCommand } from "../types";
 import type { Slide } from "../types";
@@ -59,6 +59,7 @@ export function DeckShell({ slides }: DeckShellProps) {
 
   useEffect(() => {
     const onHashChange = () => {
+      if (!window.location.hash.startsWith("#/slide/")) return;
       setIndex(slideFromHash(slides.length));
       setInteractionCommand({ tick: 0, direction: 1 });
     };
@@ -191,6 +192,16 @@ export function DeckShell({ slides }: DeckShellProps) {
         >
           <ChevronRight size={24} strokeWidth={1.8} />
         </button>
+
+        <a
+          className="icon-button lab-link"
+          href="#/lab"
+          aria-label="Open WebRTC lab"
+          title="Open WebRTC lab"
+        >
+          <FlaskConical size={21} strokeWidth={1.8} />
+          <span>Lab</span>
+        </a>
 
         <button
           className={`icon-button notes-toggle ${showNotes ? "active" : ""}`}
