@@ -1,13 +1,17 @@
 import type { ReferenceFigureData } from "../types";
 
 const instruction = "键盘左右或上下切换参考图；也可以点击上方编号。";
+const referenceFigurePath = (path: string) => {
+  const base = import.meta.env.BASE_URL;
+  return `${base.replace(/\/?$/, "/")}${path.replace(/^\//, "")}`;
+};
 
 export const referenceFigures = {
   audioAec: {
     instruction,
     figures: [
       {
-        src: "/reference-figures/aec-flow.png",
+        src: referenceFigurePath("reference-figures/aec-flow.png"),
         alt: "AEC block diagram showing near-end speech, far-end speech, speaker echo and AEC output",
         title: "AEC 不是滤镜，而是一个有参考输入的抵消系统",
         badge: "AEC 流程",
@@ -20,7 +24,7 @@ export const referenceFigures = {
         tone: "signal",
       },
       {
-        src: "/reference-figures/aec-waveform.png",
+        src: referenceFigurePath("reference-figures/aec-waveform.png"),
         alt: "Waveforms before and after acoustic echo cancellation",
         title: "波形对比：AEC 消掉的是回声成分，不是所有非人声",
         badge: "AEC 波形",
@@ -38,7 +42,7 @@ export const referenceFigures = {
     instruction,
     figures: [
       {
-        src: "/reference-figures/codec-compression-ratio.png",
+        src: referenceFigurePath("reference-figures/codec-compression-ratio.png"),
         alt: "Compression ratio comparison from H263 to H264 H265 and AV1 across resolutions",
         title: "编码效率的收益随分辨率和场景复杂度放大",
         badge: "效率趋势",
@@ -51,7 +55,7 @@ export const referenceFigures = {
         tone: "protocol",
       },
       {
-        src: "/reference-figures/codec-rd-comparison.png",
+        src: referenceFigurePath("reference-figures/codec-rd-comparison.png"),
         alt: "Rate distortion comparison for H264 x264 libaom AV1 and wzaV1 across 360p scenes",
         title: "RD 曲线提醒我们：内容类型会改变编码器表现",
         badge: "RD 对比",
@@ -69,7 +73,7 @@ export const referenceFigures = {
     instruction,
     figures: [
       {
-        src: "/reference-figures/layer-multicast-simulcast-svc.png",
+        src: referenceFigurePath("reference-figures/layer-multicast-simulcast-svc.png"),
         alt: "Comparison of multicast simulcast and SVC encoding tracks",
         title: "Simulcast 与 SVC 的关键差异是“可独立解码”与“层间依赖”",
         badge: "多质量模型",
@@ -82,7 +86,7 @@ export const referenceFigures = {
         tone: "signal",
       },
       {
-        src: "/reference-figures/layer-spatial-720p.png",
+        src: referenceFigurePath("reference-figures/layer-spatial-720p.png"),
         alt: "720p spatial layer bitrate allocation pie chart",
         title: "空间层码率预算：高清层通常吃掉大部分上行",
         badge: "空间层",
@@ -95,7 +99,7 @@ export const referenceFigures = {
         tone: "protocol",
       },
       {
-        src: "/reference-figures/layer-temporal-bitrate.png",
+        src: referenceFigurePath("reference-figures/layer-temporal-bitrate.png"),
         alt: "Temporal layer bitrate allocation for 2 3 and 4 temporal layers",
         title: "时间层码率预算：流畅度也可以分层购买",
         badge: "时间层码率",
@@ -108,7 +112,7 @@ export const referenceFigures = {
         tone: "accent",
       },
       {
-        src: "/reference-figures/layer-temporal-numbering.png",
+        src: referenceFigurePath("reference-figures/layer-temporal-numbering.png"),
         alt: "SVC temporal layer numbering and reference structure",
         title: "时间层编号越高，越容易被丢弃但越依赖基础层",
         badge: "时间层依赖",
@@ -121,7 +125,7 @@ export const referenceFigures = {
         tone: "warning",
       },
       {
-        src: "/reference-figures/sfu-subscription-bwe-sequence.svg",
+        src: referenceFigurePath("reference-figures/sfu-subscription-bwe-sequence.svg"),
         alt: "Sequence diagram showing subscribers, conference server, bandwidth estimation and video layer decision",
         title: "订阅关系与带宽估计会合并成服务器的上行请求",
         badge: "SFU 订阅序列",
@@ -139,7 +143,7 @@ export const referenceFigures = {
     instruction,
     figures: [
       {
-        src: "/reference-figures/bwe-bandwidth-vs-sending.png",
+        src: referenceFigurePath("reference-figures/bwe-bandwidth-vs-sending.png"),
         alt: "Available bandwidth and sending bitrate over time",
         title: "发送码率必须追随可用带宽，但不能贴着上限硬冲",
         badge: "码率追踪",
@@ -152,7 +156,7 @@ export const referenceFigures = {
         tone: "signal",
       },
       {
-        src: "/reference-figures/bwe-rate-mode.png",
+        src: referenceFigurePath("reference-figures/bwe-rate-mode.png"),
         alt: "Full-rate mode and bandwidth-saving mode bitrate curves",
         title: "节省带宽模式会主动让码率低于全速发送",
         badge: "发送策略",
@@ -170,7 +174,7 @@ export const referenceFigures = {
     instruction,
     figures: [
       {
-        src: "/reference-figures/nack-rtx-sequence.png",
+        src: referenceFigurePath("reference-figures/nack-rtx-sequence.png"),
         alt: "NACK RTCP request and retransmission sequence",
         title: "NACK 是包级请求，代价是一整个 RTT",
         badge: "NACK/RTX",
@@ -188,7 +192,7 @@ export const referenceFigures = {
     instruction,
     figures: [
       {
-        src: "/reference-figures/fir-refresh-sequence.png",
+        src: referenceFigurePath("reference-figures/fir-refresh-sequence.png"),
         alt: "FIR RTCP request causing I frame refresh sequence",
         title: "FIR/PLI 请求刷新参考链，不是补一个丢包",
         badge: "FIR 序列",
@@ -201,7 +205,7 @@ export const referenceFigures = {
         tone: "warning",
       },
       {
-        src: "/reference-figures/reference-key-p-chain.png",
+        src: referenceFigurePath("reference-figures/reference-key-p-chain.png"),
         alt: "Key frame and P frame reference chain",
         title: "关键帧越近，预测链恢复越快，但码率尖峰越频繁",
         badge: "Key/P 链",
@@ -214,7 +218,7 @@ export const referenceFigures = {
         tone: "accent",
       },
       {
-        src: "/reference-figures/reference-golden-alt-dense.png",
+        src: referenceFigurePath("reference-figures/reference-golden-alt-dense.png"),
         alt: "Golden and alt reference frames with dense references",
         title: "多参考帧提升压缩效率，也增加错误传播路径",
         badge: "多参考帧",
@@ -227,7 +231,7 @@ export const referenceFigures = {
         tone: "protocol",
       },
       {
-        src: "/reference-figures/reference-confirm-fail.png",
+        src: referenceFigurePath("reference-figures/reference-confirm-fail.png"),
         alt: "Reference confirmation failure diagram with gold and alt frames",
         title: "确认失败时，预测链需要回到可确认的参考点",
         badge: "确认失败",
@@ -245,7 +249,7 @@ export const referenceFigures = {
     instruction,
     figures: [
       {
-        src: "/reference-figures/fec-sequence.png",
+        src: referenceFigurePath("reference-figures/fec-sequence.png"),
         alt: "FEC encoding adds two packets and recovers after losing two packets",
         title: "FEC 是提前付冗余，换取不等 RTT 的恢复机会",
         badge: "FEC",
@@ -263,7 +267,7 @@ export const referenceFigures = {
     instruction,
     figures: [
       {
-        src: "/reference-figures/plc-jitter-buffer.png",
+        src: referenceFigurePath("reference-figures/plc-jitter-buffer.png"),
         alt: "Sender receiver jitter buffer and PLC topology with packet loss",
         title: "PLC 发生在接收端播放时钟前，目标是不断音",
         badge: "PLC 拓扑",
@@ -276,7 +280,7 @@ export const referenceFigures = {
         tone: "signal",
       },
       {
-        src: "/reference-figures/plc-g711-concealment.png",
+        src: referenceFigurePath("reference-figures/plc-g711-concealment.png"),
         alt: "G711 frame erasure concealment waveform example",
         title: "G.711 丢帧隐藏：短缺口可平滑，长缺口会露馅",
         badge: "G.711 PLC",
@@ -294,7 +298,7 @@ export const referenceFigures = {
     instruction,
     figures: [
       {
-        src: "/reference-figures/recovery-strategy-loss-chart.png",
+        src: referenceFigurePath("reference-figures/recovery-strategy-loss-chart.png"),
         alt: "Frame rate by different packet loss at 600kbps for recovery strategies",
         title: "不同恢复策略在丢包率上升时退化曲线不同",
         badge: "策略曲线",
@@ -312,7 +316,7 @@ export const referenceFigures = {
     instruction,
     figures: [
       {
-        src: "/reference-figures/server-rtp-recording.svg",
+        src: referenceFigurePath("reference-figures/server-rtp-recording.svg"),
         alt: "Server side RTP recording topology with meeting service RTP folder storage and playback transcoding",
         title: "服务端 RTP 录制会把媒体路径延伸到存储系统",
         badge: "RTP 录制",
@@ -325,7 +329,7 @@ export const referenceFigures = {
         tone: "warning",
       },
       {
-        src: "/reference-figures/client-server-recording.svg",
+        src: referenceFigurePath("reference-figures/client-server-recording.svg"),
         alt: "Client and server recording paths including mixed recording MP4 direct RTP and transcoding",
         title: "合屏录制、直落盘和离线转码是三种不同工程路径",
         badge: "录制路径",
@@ -343,7 +347,7 @@ export const referenceFigures = {
     instruction,
     figures: [
       {
-        src: "/reference-figures/deployment-jsms-srs.png",
+        src: referenceFigurePath("reference-figures/deployment-jsms-srs.png"),
         alt: "Example topology with App JMP H5 WebRTC mini program RTMP SRS JSMS and recording CD",
         title: "混合接入拓扑：WebRTC、RTMP、录制和调度常常共存",
         badge: "混合接入",
@@ -356,7 +360,7 @@ export const referenceFigures = {
         tone: "signal",
       },
       {
-        src: "/reference-figures/jmp-media-process.svg",
+        src: referenceFigurePath("reference-figures/jmp-media-process.svg"),
         alt: "Juphoon Meeting Process server diagram with media channels bandwidth estimation subscribe relation SVC config QoS and recording",
         title: "媒体进程内部不只是转发，还包含 QoS、SVC 和统计收集",
         badge: "媒体进程",
@@ -369,7 +373,7 @@ export const referenceFigures = {
         tone: "protocol",
       },
       {
-        src: "/reference-figures/pstn-room-session.svg",
+        src: referenceFigurePath("reference-figures/pstn-room-session.svg"),
         alt: "PSTN room session sequence with SIP gateway JSM server and JSM clients",
         title: "PSTN 接入是 RTC 系统与传统通信网络的桥",
         badge: "PSTN 序列",
@@ -382,7 +386,7 @@ export const referenceFigures = {
         tone: "warning",
       },
       {
-        src: "/reference-figures/pstn-dtmf-session.svg",
+        src: referenceFigurePath("reference-figures/pstn-dtmf-session.svg"),
         alt: "PSTN DTMF join sequence with SIP gateway CD JSM server RTP and RTCP media",
         title: "DTMF 入会流程把号码、会场 ID 和媒体路径串起来",
         badge: "DTMF 入会",
