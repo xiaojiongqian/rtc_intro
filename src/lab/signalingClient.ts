@@ -25,16 +25,7 @@ export type SignalingClient = {
 };
 
 export const defaultSignalingUrl = () => {
-  const meta = import.meta as ImportMeta & {
-    env?: { VITE_SIGNALING_URL?: string };
-  };
-  const configuredUrl = meta.env?.VITE_SIGNALING_URL?.trim();
-  if (configuredUrl) return configuredUrl;
-
-  const host = window.location.hostname;
-  const isLocalHost =
-    host === "localhost" || host === "127.0.0.1" || host === "::1";
-  return isLocalHost ? "ws://localhost:8787" : "";
+  return import.meta.env.VITE_SIGNALING_URL?.trim() || "ws://localhost:8787";
 };
 
 export const createSignalingClient = ({
