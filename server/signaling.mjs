@@ -1,6 +1,7 @@
+import { createServer } from "node:http";
 import { WebSocketServer } from "ws";
 
-const PORT = Number(process.env.SIGNALING_PORT ?? 8787);
+const PORT = Number(process.env.PORT ?? process.env.SIGNALING_PORT ?? 8787);
 const MAX_PEERS = 4;
 
 /** @type {Map<string, Map<string, { peerId: string; displayName: string; joinedAt: number; socket: import("ws").WebSocket }>>} */
@@ -133,7 +134,18 @@ const handleSignal = (socket, message) => {
   });
 };
 
-const server = new WebSocketServer({ port: PORT });
+const httpServer = createServer((request, response) => {
+  if (request.url === "/health") {
+    response.writeHead(200, { "content-type": "application/json" });
+    response.end(JSON.stringify({ ok: true, rooms: rooms.size }));
+    return;
+  }
+
+  response.writeHead(200, { "content-type": "text/plain; charset=utf-8" });
+  response.end("WebRTC lab signaling server is running.\n");
+});
+
+const server = new WebSocketServer({ server: httpServer });
 
 server.on("connection", (socket) => {
   socket.on("message", (raw) => {
@@ -175,4 +187,6 @@ server.on("connection", (socket) => {
   socket.on("error", () => leaveRoom(socket));
 });
 
-console.log(`WebRTC lab signaling server listening on ws://localhost:${PORT}`);
+httpServer.listen(PORT, "0.0.0.0", () => {
+  console.log(`WebRTC lab signaling server listening on port ${PORT}`);
+});

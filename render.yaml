@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: rtc-intro-signaling
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm run signal
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 22

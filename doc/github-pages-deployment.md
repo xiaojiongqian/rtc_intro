@@ -34,7 +34,9 @@
 node server/signaling.mjs
 ```
 
-它可以部署到 Render、Fly.io、Railway、VPS、Kubernetes 等能长期运行 Node WebSocket 服务的平台。公网信令服务需要暴露为类似：
+它可以部署到 Render、Fly.io、Railway、VPS、Kubernetes 等能长期运行 Node WebSocket 服务的平台。仅依赖 GitHub 无法完成这一步：GitHub Pages 不运行 Node 服务，GitHub Actions 也不是常驻进程。
+
+公网信令服务需要暴露为类似：
 
 ```text
 wss://your-signaling.example.com
@@ -44,6 +46,34 @@ wss://your-signaling.example.com
 
 1. 在实验台顶部“信令服务器”输入框里手动填写 `wss://...`。
 2. 在 GitHub 仓库 Settings -> Secrets and variables -> Actions -> Variables 中新增 `VITE_SIGNALING_URL`，重新运行 Pages workflow 后会作为默认值填入页面。
+
+### Render 最小部署路径
+
+仓库已增加 `render.yaml`，可作为 Render Blueprint 使用。
+
+1. 打开 Render，新建 Blueprint 或 Web Service。
+2. 选择 GitHub 仓库 `xiaojiongqian/rtc_intro`。
+3. 使用仓库中的 `render.yaml`。
+4. 部署完成后，Render 会提供 HTTPS 域名，例如：
+
+```text
+https://rtc-intro-signaling.onrender.com
+```
+
+实验台里填写对应的 WebSocket 地址：
+
+```text
+wss://rtc-intro-signaling.onrender.com
+```
+
+如果希望 Pages 页面默认带上这个地址，可在本机执行：
+
+```bash
+gh variable set VITE_SIGNALING_URL --repo xiaojiongqian/rtc_intro --body "wss://rtc-intro-signaling.onrender.com"
+gh workflow run deploy-pages.yml --repo xiaojiongqian/rtc_intro
+```
+
+Render Free 服务空闲后可能休眠，第一次连接会慢一些。课堂演示前建议先访问 `/health` 唤醒服务。
 
 ## GitHub Pages 设置
 
