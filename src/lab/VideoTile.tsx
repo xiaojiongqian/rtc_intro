@@ -12,10 +12,11 @@ type VideoTileProps = {
   stats?: RtcStatsSnapshot;
 };
 
-export function VideoTile({ label, stream, isLocal, state, stats }: VideoTileProps) {
+export function VideoTile({ label, peer, stream, isLocal, state, stats }: VideoTileProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hasVideo = enabledTrackCount(stream, "video") > 0;
   const hasAudio = enabledTrackCount(stream, "audio") > 0;
+  const showStats = Boolean(peer);
 
   useEffect(() => {
     if (videoRef.current && videoRef.current.srcObject !== stream) {
@@ -24,7 +25,7 @@ export function VideoTile({ label, stream, isLocal, state, stats }: VideoTilePro
   }, [stream]);
 
   return (
-    <article className={`lab-video-tile ${isLocal ? "local" : ""}`}>
+    <article className={`lab-video-tile ${isLocal ? "local" : ""} ${showStats ? "has-stats" : "no-stats"}`}>
       {stream ? (
         <video
           autoPlay
@@ -51,12 +52,14 @@ export function VideoTile({ label, stream, isLocal, state, stats }: VideoTilePro
         {hasVideo ? <Video size={16} /> : <VideoOff size={16} />}
       </div>
 
-      <div className="lab-video-stats">
-        <span>RTT {formatNumber(stats?.connection.currentRoundTripTimeMs, 0, "ms")}</span>
-        <span>loss {formatPercent(stats?.inbound.packetLossRate)}</span>
-        <span>FPS {formatNumber(stats?.inbound.framesPerSecond ?? stats?.outbound.framesPerSecond, 0)}</span>
-        <span>{stats?.inbound.codec ?? stats?.outbound.codec ?? "codec N/A"}</span>
-      </div>
+      {showStats ? (
+        <div className="lab-video-stats">
+          <span>RTT {formatNumber(stats?.connection.currentRoundTripTimeMs, 0, "ms")}</span>
+          <span>loss {formatPercent(stats?.inbound.packetLossRate)}</span>
+          <span>FPS {formatNumber(stats?.inbound.framesPerSecond ?? stats?.outbound.framesPerSecond, 0)}</span>
+          <span>{stats?.inbound.codec ?? stats?.outbound.codec ?? "codec N/A"}</span>
+        </div>
+      ) : null}
     </article>
   );
 }

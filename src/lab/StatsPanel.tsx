@@ -1,6 +1,9 @@
-import { Activity, Gauge, Network, Radio } from "lucide-react";
+import { useState } from "react";
+import { Activity, Check, Copy, Gauge, Network, Radio } from "lucide-react";
 import { formatNumber, formatPercent } from "./format";
 import type { PeerSessionState, RoomStatsSnapshot } from "./types";
+
+const WEBRTC_INTERNALS_URL = "chrome://webrtc-internals/";
 
 type StatsPanelProps = {
   roomStats: RoomStatsSnapshot;
@@ -8,8 +11,35 @@ type StatsPanelProps = {
 };
 
 export function StatsPanel({ roomStats, sessions }: StatsPanelProps) {
+  const [copiedInternalsUrl, setCopiedInternalsUrl] = useState(false);
+
+  const handleCopyInternalsUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(WEBRTC_INTERNALS_URL);
+      setCopiedInternalsUrl(true);
+      window.setTimeout(() => setCopiedInternalsUrl(false), 1800);
+    } catch {
+      setCopiedInternalsUrl(false);
+    }
+  };
+
   return (
     <section className="lab-panel-section">
+      <div className="lab-stats-tools">
+        <div className="lab-stats-tool-copy">
+          <span>浏览器内部统计</span>
+          <code>{WEBRTC_INTERNALS_URL}</code>
+        </div>
+        <button
+          type="button"
+          onClick={handleCopyInternalsUrl}
+          title="复制 chrome://webrtc-internals/"
+        >
+          {copiedInternalsUrl ? <Check size={16} /> : <Copy size={16} />}
+          {copiedInternalsUrl ? "已复制" : "复制地址"}
+        </button>
+      </div>
+
       <div className="lab-metric-grid">
         <article>
           <Network size={18} />

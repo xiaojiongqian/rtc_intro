@@ -445,7 +445,7 @@ flowchart LR
 - 本地 tile 固定在第一个位置。
 - 视频墙提供统一画幅拖拽控制，便于课堂演示 4:3、16:9、21:9 等窗口比例对布局和观感的影响。
 - 每个远端 tile 显示 displayName、连接状态、静音/关摄像头状态。
-- tile 内显示轻量指标：RTT、loss、FPS、codec。
+- 远端 peer tile 内显示轻量指标：RTT、loss、FPS、codec；本地预览和空位不显示这些链路指标，避免误解。
 - 空 tile 显示可加入容量，不做复杂占位装饰。
 
 ### 8.3 实验面板
@@ -453,6 +453,7 @@ flowchart LR
 使用 tabs 或 segmented control：
 
 - Stats：单 peer 详情和房间汇总。
+- Stats 面板展示 `chrome://webrtc-internals/` 地址并提供复制按钮，便于教师查看浏览器内部 WebRTC 原始指标。
 - QoS：真实控制项和 presets。
 - Mechanism：NACK/FEC/PLC/jitter buffer 的教学模拟与证据解释。
 
