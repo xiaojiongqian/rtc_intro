@@ -74,7 +74,7 @@ export function RoomBar({
         <input
           disabled={joined}
           onChange={(event) => onSignalingUrlChange(event.target.value)}
-          placeholder="ws://localhost:8787"
+          placeholder="ws://localhost:8787 或 wss://signal.example.com"
           value={signalingUrl}
         />
       </label>

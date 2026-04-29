@@ -615,7 +615,7 @@ export const useMeshRoom = () => {
         return;
       }
       if (!signalingUrl.trim()) {
-        setError("Signaling server URL is required.");
+        setError("请填写信令服务器地址；公网 HTTPS 页面需要使用 wss:// 地址。");
         return;
       }
 
