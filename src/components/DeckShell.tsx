@@ -1,4 +1,12 @@
-import { ChevronLeft, ChevronRight, FlaskConical, Moon, PanelRightOpen, Sun } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ClipboardCheck,
+  FlaskConical,
+  Moon,
+  PanelRightOpen,
+  Sun,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { InteractionCommand } from "../types";
 import type { Slide } from "../types";
@@ -201,6 +209,16 @@ export function DeckShell({ slides }: DeckShellProps) {
         >
           <FlaskConical size={21} strokeWidth={1.8} />
           <span>Lab</span>
+        </a>
+
+        <a
+          className="icon-button lab-link"
+          href="#/quiz"
+          aria-label="Open quiz"
+          title="Open quiz"
+        >
+          <ClipboardCheck size={21} strokeWidth={1.8} />
+          <span>Quiz</span>
         </a>
 
         <button

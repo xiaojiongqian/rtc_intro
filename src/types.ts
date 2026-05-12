@@ -65,6 +65,33 @@ export type Slide = {
   notes?: string;
 };
 
+export type QuizQuestionBase = {
+  id: string;
+  section: string;
+  prompt: string;
+  explanation: string;
+  slideIds: number[];
+};
+
+export type QuizOption = {
+  id: string;
+  text: string;
+};
+
+export type SingleChoiceQuestion = QuizQuestionBase & {
+  type: "single-choice";
+  options: QuizOption[];
+  answerId: string;
+};
+
+export type FillBlankQuestion = QuizQuestionBase & {
+  type: "fill-blank";
+  acceptedAnswers: string[];
+  requiredKeywordGroups: string[][];
+};
+
+export type QuizQuestion = SingleChoiceQuestion | FillBlankQuestion;
+
 export type InteractionCommand = {
   tick: number;
   direction: 1 | -1;

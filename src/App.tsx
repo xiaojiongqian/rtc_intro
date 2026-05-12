@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { DeckShell } from "./components/DeckShell";
+import { QuizShell } from "./components/QuizShell";
 import { slides } from "./data/slides";
 import { LabShell } from "./lab/LabShell";
 
@@ -14,6 +15,10 @@ export default function App() {
 
   if (hash.startsWith("#/lab")) {
     return <LabShell />;
+  }
+
+  if (hash.startsWith("#/quiz")) {
+    return <QuizShell />;
   }
 
   return <DeckShell slides={slides} />;
