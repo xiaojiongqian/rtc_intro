@@ -1,5 +1,5 @@
 import { ArrowLeft, FlaskConical } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DevicePickerModal } from "./DevicePickerModal";
 import { MechanismPanel } from "./MechanismPanel";
 import { QosPanel } from "./QosPanel";
@@ -23,6 +23,11 @@ export function LabShell() {
   const [displayName, setDisplayName] = useState(room.localPeer.displayName);
   const [signalingUrl, setSignalingUrl] = useState(() => defaultSignalingUrl());
   const [activeTab, setActiveTab] = useState<PanelTab>("stats");
+
+  useEffect(() => {
+    const savedTheme = window.localStorage.getItem("rtc-slides-theme");
+    document.documentElement.dataset.theme = savedTheme === "light" ? "light" : "dark";
+  }, []);
 
   const join = () => {
     void room.joinRoom(roomCode, displayName, signalingUrl);
