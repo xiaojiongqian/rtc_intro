@@ -8,8 +8,9 @@
 
 - 课程页面：`https://xiaojiongqian.github.io/rtc_intro/`
 - WebRTC 实验台：`https://xiaojiongqian.github.io/rtc_intro/#/lab`
+- 课程自测：`https://xiaojiongqian.github.io/rtc_intro/#/quiz`
 
-实验台的音视频媒体仍然是浏览器之间的 P2P WebRTC 连接；信令服务只负责转发 SDP 和 ICE。
+课程页面和 Quiz 都是纯静态前端，可以直接在 GitHub Pages 上使用。实验台的音视频媒体仍然是浏览器之间的 P2P WebRTC 连接；信令服务只负责转发 SDP 和 ICE。
 
 ## 已加入的部署配置
 
@@ -24,14 +25,22 @@
 
 也可以在 GitHub Actions 页面手动运行 `Deploy GitHub Pages`。
 
-## 信令服务要求
+## Lab 信令服务要求
 
-公网实验时，浏览器页面是 HTTPS，因此信令地址必须使用 `wss://`，不能使用 `ws://`，否则会被浏览器当作 mixed content 拦截。
+访问 GitHub Pages 上的 slides 和 Quiz 不需要服务端。只有运行 `#/lab` 并真正加入 WebRTC 房间时，才需要 WebSocket 信令服务。
+
+公网实验时，浏览器页面是 HTTPS，因此信令地址必须使用 `wss://`，不能使用 `ws://`，否则会被浏览器当作 mixed content 拦截。本地开发时可以使用默认的 `ws://localhost:8787`。
 
 当前仓库里的本地信令服务入口是：
 
 ```bash
-node server/signaling.mjs
+npm run signal
+```
+
+如果同时启动客户端和信令服务，推荐使用：
+
+```bash
+npm run dev:lab
 ```
 
 它可以部署到 Render、Fly.io、Railway、VPS、Kubernetes 等能长期运行 Node WebSocket 服务的平台。仅依赖 GitHub 无法完成这一步：GitHub Pages 不运行 Node 服务，GitHub Actions 也不是常驻进程。
@@ -89,6 +98,8 @@ Render Free 服务空闲后可能休眠，第一次连接会慢一些。课堂�
 ## 教学演示限制
 
 - GitHub Pages 只解决前端公网访问，不提供信令服务。
+- Quiz 可直接在 GitHub Pages 上完成自测和自动批改。
 - 没有 TURN 时，复杂 NAT 或企业网络下 P2P 可能连接失败。
 - 摄像头和麦克风在 GitHub Pages HTTPS 页面上可以正常请求权限。
 - 多人通话仍按课程设计限制为最多 4 人全 P2P Mesh。
+- Lab 跑起来后，可以打开 `chrome://webrtc-internals/` 查看浏览器内部 WebRTC 原始统计；Lab 的 Stats 面板也提供该地址的复制按钮。

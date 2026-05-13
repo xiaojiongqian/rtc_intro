@@ -759,6 +759,8 @@ timeline
 
 下面的代码都是**教学级最小骨架**：它们可以在本地实验环境中运行或很少修改后运行，但不是生产级系统。用户只要求“代码片段”，因此这里重点是保留**核心控制流**、**关键注释**与**运行步骤**，便于课堂与实验，而不试图在一份报告里塞进完整企业系统。
 
+当前配套工程已经把报告内容落成三个学习入口：`#/slide/1` 用于 51 页交互式课程讲解，`#/lab` 用于本地或公网信令服务支撑的 P2P WebRTC 实验，`#/quiz` 用于 80 题课程自测和错题复盘。下面保留的代码片段可作为理解实现的最小骨架；真实工程入口和运行命令以仓库根目录 `readme.md` 与 `doc/webrtc-teaching-lab-design.md` 为准。
+
 ### 示例一：Node.js WebRTC 信令服务
 
 依赖与运行步骤：  
@@ -1246,16 +1248,27 @@ flowchart LR
 **实验一：P2P 建连与基础指标观测**  
 实验目标：让学生亲手跑通最小 WebRTC 链路，并理解 Offer/Answer、ICE 和 `getStats()`。  
 步骤：  
-1. 启动 `signaling-server.js`。  
-2. 本地静态服务打开 `p2p-demo.html`。  
-3. 两个浏览器窗口进入同一房间。  
-4. 记录 2 分钟内的 `roundTripTime`、`fractionLost`、`framesPerSecond` 与 `avgJitterBufferDelay`。  
-5. 把 `echoCancellation` 从 `"remote-only"` 改成 `false`，对比音质与回声。  
+1. 在仓库根目录执行 `npm run dev:lab`，同时启动 Vite 客户端和 `server/signaling.mjs`。  
+2. 打开 `http://localhost:5173/#/lab`，也可以使用 Vite 输出的实际端口。  
+3. 两个 Chrome/Edge 标签页进入同一房间。  
+4. 在 Lab 的 Stats 面板和 `chrome://webrtc-internals/` 中记录 2 分钟内的 RTT、丢包率、FPS、码率、NACK/PLI/FIR 与平均 jitter buffer delay。  
+5. 在 QoS 面板调整音频前处理或视频码率/帧率 preset，对比体验和指标变化。  
 预期结果：  
 - 学生能看到建连成功与远端画面。  
-- 控制台会持续输出 RTT、丢包和抖动缓冲。  
-- 在外放环境下关闭 AEC 后更容易出现回声或啸叫。  
+- Lab 面板会持续展示 RTT、丢包、抖动缓冲、码率、codec 和恢复机制相关计数。  
+- 在外放环境下关闭或调整音频前处理后，更容易观察到回声、噪声或音频可懂度变化。  
 这个实验直接对应 W3C Media Capture 与 Stats 的标准能力。citeturn9search0turn10view0turn10view1
+
+**实验后自测：Quiz 错题复盘**  
+实验目标：把 Lab 观察到的指标、协议和架构现象转化为可检验的知识掌握。  
+步骤：  
+1. 打开 `#/quiz`。  
+2. 完成 70 道单选题和 10 道填空题。  
+3. 提交后查看总分、章节得分和错题报告。  
+4. 对照填空题的参考答案与原理解析，复盘 ICE 候选对、码率、压缩比、FEC、jitter buffer、getStats 等计算题。  
+预期结果：  
+- 学生能发现自己薄弱的章节。  
+- 学生能把“做错的数值题”回扣到具体公式和 RTC 原理。  
 
 **实验二：使用 `tc netem` 做受控网络扰动**  
 实验目标：理解延迟、丢包、抖动对通话体验的不同影响。  

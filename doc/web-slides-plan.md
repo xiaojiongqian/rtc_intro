@@ -2,7 +2,7 @@
 
 ## 目标
 
-将 `deep-research-report.md` 中的 RTC 教学内容重组为可投屏、可互动、可逐步扩展的网页 slides。当前阶段已覆盖“导言 + 基础理论 + 协议与建连 + 架构 + 编解码与媒体处理 + 传输控制与性能优化 + 安全、部署与运维 + 代码与工程实践 + 行业与前沿”，重点让学生先建立 RTC 的概念边界、链路/指标判断语言，再理解协议协作、媒体架构、编解码策略、传输控制、线上治理、代码实验与产业趋势如何共同服务实时体验。
+将 `deep-research-report.md` 中的 RTC 教学内容重组为可投屏、可互动、可逐步扩展的网页 slides。当前阶段已覆盖“导言 + 基础理论 + 协议与建连 + 架构 + 编解码与媒体处理 + 传输控制与性能优化 + 安全、部署与运维 + 代码与工程实践 + 行业与前沿”，并已在同一 React/Vite 工程中集成 `#/lab` WebRTC 教学实验台和 `#/quiz` 自测页面。重点让学生先建立 RTC 的概念边界、链路/指标判断语言，再理解协议协作、媒体架构、编解码策略、传输控制、线上治理、代码实验与产业趋势如何共同服务实时体验。
 
 ## 当前页序
 
@@ -84,9 +84,24 @@
 - `T`：切换深色/浅色主题。
 - `N`：显示或隐藏讲者备注。
 
+## 当前工程入口
+
+- `#/slide/1`：51 页课程 slides，支持键盘翻页、互动推进、主题切换和讲者备注。
+- `#/lab`：WebRTC 教学实验台，使用本地或公网 WebSocket 信令服务建立最多 4 人 P2P Mesh 房间，并展示 Stats、QoS 控件和机制解释。
+- `#/quiz`：课程自测页面，包含 70 道单选题和 10 道填空题，满分 100 分；提交后自动批改，展示章节得分、错题答案和解释。
+- slides 底部控制栏提供 `Lab` 与 `Quiz` 入口，Lab 与 Quiz 页面顶部都提供返回课程的链接。
+
+## 运行与部署说明
+
+- 本地课程客户端：`npm run dev`。
+- 本地 Lab 推荐命令：`npm run dev:lab`，会同时启动 Vite 客户端和 `server/signaling.mjs` WebSocket 信令服务。
+- 单独启动信令服务：`npm run signal`，默认监听 `ws://localhost:8787`。
+- GitHub Pages 前端地址：`https://xiaojiongqian.github.io/rtc_intro`。Pages 只能运行静态前端，Lab 真正入房通话仍需要另行启动或部署 WebSocket 信令服务。
+- Lab 跑起来后，可打开 `chrome://webrtc-internals/` 查看浏览器原始 WebRTC 统计信息；Lab 的 Stats 面板也提供该地址的复制按钮。
+
 ## 后续扩展
 
 - Slides 数据按章节放在 `src/data/sections/`：`intro.ts`、`fundamentals.ts`、`protocols.ts`、`architecture.ts`、`codec.ts`、`transport.ts`、`securityOps.ts`、`practiceFrontier.ts`；`src/data/slides.ts` 只负责按课程顺序聚合导出。
-- 当前网页 slides 已覆盖报告规划的 1–51 页，后续可继续扩展为代码实验包、讲师备注导出或分章节演示模式。
+- 当前网页 slides 已覆盖报告规划的 1–51 页，且已完成 Lab 与 Quiz 两个学习入口；后续可继续扩展为讲师备注导出、分章节演示模式、实验记录导出或更完整的 TURN/SFU 实验。
 - 新增章节优先复用现有互动模式：场景判断、链路诊断、取舍投票、指标切换、代码生命周期 walkthrough。
-- 代码实验页使用专用 visual type，避免把代码截图塞进通用卡片；代码只展示关键控制流，完整实现放到实验材料中。
+- 代码实验页使用专用 Lab 入口承载，避免把代码截图塞进通用卡片；slides 中只展示关键控制流，完整实现放在 `src/lab/` 与 `server/signaling.mjs` 中。
