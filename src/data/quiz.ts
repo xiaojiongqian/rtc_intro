@@ -1058,7 +1058,7 @@ export const quizQuestions: QuizQuestion[] = [
     prompt: "RTC 的英文全称是 Real-Time Communication，中文通常写作什么？",
     acceptedAnswers: ["实时通信"],
     requiredKeywordGroups: [["实时"], ["通信"]],
-    explanation: "课程把 RTC 放在低时延双向互动场景里理解，而不是泛指所有能播放音视频的系统。",
+    explanation: "RTC 是 Real-Time Communication 的常用中文译法。这里的重点不是“能播放音视频”，而是通信双方能在低时延窗口里连续说话、听见、打断和回应，因此它更强调互动闭环。",
     slideIds: [1],
   },
   {
@@ -1068,7 +1068,7 @@ export const quizQuestions: QuizQuestion[] = [
     prompt: "计算题：采集 20ms、编码 35ms、网络 80ms、jitter buffer 60ms、解码/渲染 24ms，总端到端时延是多少 ms？",
     acceptedAnswers: ["219ms", "219毫秒", "219"],
     requiredKeywordGroups: [["219"]],
-    explanation: "20+35+80+60+24=219ms。端到端预算要把端侧、网络、缓冲和播放都算进去。",
+    explanation: "端到端时延按链路阶段相加：20+35+80+60+24=219ms。采集、编码、网络、jitter buffer 和解码/渲染都在同一个实时预算里，任何一段变长都会让对话更慢。",
     slideIds: [7, 9],
   },
   {
@@ -1078,7 +1078,7 @@ export const quizQuestions: QuizQuestion[] = [
     prompt: "和 QoS 相对，用来表示用户最终体验/感知结果的缩写是什么？",
     acceptedAnswers: ["QoE"],
     requiredKeywordGroups: [["qoe"]],
-    explanation: "QoS 看 RTT、丢包、抖动等条件，QoE 看用户是否觉得清楚、顺滑、自然。",
+    explanation: "QoS 是网络和系统条件，例如 RTT、丢包、抖动、码率；QoE 是用户最终感知，例如是否听得清、画面是否卡、对话是否自然。低丢包不一定等于好体验，因为缓冲过深或首帧过慢也会伤害 QoE。",
     slideIds: [12],
   },
   {
@@ -1088,7 +1088,7 @@ export const quizQuestions: QuizQuestion[] = [
     prompt: "计算题：ICE 一端 2 个 local candidate、对端 3 个 remote candidate，最多形成多少个候选对？",
     acceptedAnswers: ["6", "6个"],
     requiredKeywordGroups: [["6"]],
-    explanation: "候选对数量来自 local × remote，2×3=6；真实实现还会排序、剪枝和提名。",
+    explanation: "ICE 会把本端每一个 local candidate 与对端每一个 remote candidate 组合成 candidate pair，所以理论最大数量是 local × remote，即 2×3=6。随后 ICE 不会盲目使用全部候选对，而是按优先级做连通性检查，淘汰不可达路径，并提名最终 selected candidate pair。",
     slideIds: [13, 17],
   },
   {
@@ -1098,7 +1098,7 @@ export const quizQuestions: QuizQuestion[] = [
     prompt: "NACK 的触发依据是接收端发现 RTP 的哪个字段出现缺口？",
     acceptedAnswers: ["sequence number", "序号"],
     requiredKeywordGroups: [["sequence", "序号"]],
-    explanation: "NACK 是具体包级恢复，请求缺失的 RTP 序号对应的包。",
+    explanation: "RTP sequence number 是接收端判断包顺序和缺口的关键字段。例如收到 1001、1002、1004，就能推断 1003 缺失；NACK 会基于这些缺失序号请求发送端重传对应 RTP 包。",
     slideIds: [14, 31],
   },
   {
@@ -1108,7 +1108,7 @@ export const quizQuestions: QuizQuestion[] = [
     prompt: "计算题：48kHz、16bit、单声道 PCM 原始音频码率是多少 kbps？",
     acceptedAnswers: ["768kbps", "768kbit/s", "0.768mbps", "768"],
     requiredKeywordGroups: [["768"]],
-    explanation: "48,000×16×1=768,000 bit/s，即 768kbps。编码器要把原始媒体压到可传输预算内。",
+    explanation: "PCM 原始码率 = 采样率 × 每个采样 bit 数 × 声道数，所以 48,000×16×1=768,000 bit/s，即 768kbps。Opus 等音频编码器的价值，就是在尽量保留可懂度或保真的前提下，把原始码率压到网络可承受的范围。",
     slideIds: [24],
   },
   {
@@ -1118,7 +1118,7 @@ export const quizQuestions: QuizQuestion[] = [
     prompt: "计算题：约 664Mbps 的原始 720p30 视频压到 1.5Mbps，压缩比约为多少比 1？",
     acceptedAnswers: ["443:1", "443比1", "约443:1", "443"],
     requiredKeywordGroups: [["443"]],
-    explanation: "664/1.5≈443。这个数量级解释了为什么实时视频强依赖高效编码和码率控制。",
+    explanation: "压缩比 = 原始码率 / 压缩后码率，约为 664/1.5≈443，因此答案约 443:1。这说明 720p30 原始视频不能直接在 RTC 中传输，必须依赖视频编码、码率控制、分层编码和弱网降级策略。",
     slideIds: [24, 26],
   },
   {
@@ -1128,7 +1128,7 @@ export const quizQuestions: QuizQuestion[] = [
     prompt: "计算题：主媒体流 1.5Mbps，FEC 冗余 20%，总发送预算是多少 Mbps？",
     acceptedAnswers: ["1.8Mbps", "1.8", "1800kbps"],
     requiredKeywordGroups: [["1.8", "1800"]],
-    explanation: "1.5×(1+20%)=1.8Mbps。FEC 用额外带宽换取不等待反馈的恢复机会。",
+    explanation: "FEC 冗余会随主媒体一起发送，20% 冗余表示总预算为 1.5×(1+0.2)=1.8Mbps。它的原理是提前发送恢复信息，避免高 RTT 场景里等 NACK 重传来不及，但代价是持续占用额外带宽。",
     slideIds: [33],
   },
   {
@@ -1138,7 +1138,7 @@ export const quizQuestions: QuizQuestion[] = [
     prompt: "计算题：jitterBufferDelay 累计 8 秒，jitterBufferEmittedCount 为 100，平均缓冲延迟是多少 ms？",
     acceptedAnswers: ["80ms", "80毫秒", "0.08s", "80"],
     requiredKeywordGroups: [["80", "0.08"]],
-    explanation: "8s/100=0.08s，即 80ms。缓冲过深会直接侵蚀实时互动预算。",
+    explanation: "平均缓冲延迟 = jitterBufferDelay / jitterBufferEmittedCount。这里 8s/100=0.08s=80ms。jitter buffer 的作用是吸收网络到达时间的抖动，让播放更连续；但它本质上是在用等待换稳定，平均值越高，互动时延也越容易被拉长。",
     slideIds: [35],
   },
   {
@@ -1148,7 +1148,7 @@ export const quizQuestions: QuizQuestion[] = [
     prompt: "计算题：getStats 显示 bytesSent 在 10 秒内增加 3,000,000 字节，平均发送码率是多少 Mbps？",
     acceptedAnswers: ["2.4Mbps", "2.4", "2400kbps"],
     requiredKeywordGroups: [["2.4", "2400"]],
-    explanation: "3,000,000×8/10=2,400,000 bit/s，即 2.4Mbps。工程排障要会把 Stats 差分换算成码率。",
+    explanation: "bytesSent 是字节数，换成 bit 要乘以 8；窗口内码率 = 3,000,000×8/10=2,400,000 bit/s，即 2.4Mbps。排障时通常看两次 getStats 的差分，而不是只看累计值本身。",
     slideIds: [47, 49],
   },
 ];

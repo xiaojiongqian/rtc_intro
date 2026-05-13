@@ -453,9 +453,10 @@ export function QuizShell() {
                         />
                       </label>
                       {submitted ? (
-                        <p className="quiz-fill-answer">
-                          参考答案：{correctAnswerText(question)}
-                        </p>
+                        <div className="quiz-fill-answer">
+                          <strong>参考答案：{correctAnswerText(question)}</strong>
+                          <span>解析：{question.explanation}</span>
+                        </div>
                       ) : null}
                     </>
                   )}

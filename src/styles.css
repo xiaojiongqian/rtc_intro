@@ -1544,6 +1544,8 @@ h1 {
 }
 
 .quiz-fill-answer {
+  display: grid;
+  gap: 6px;
   margin: -4px 0 0;
   padding: 10px 12px;
   border: 1px solid color-mix(in srgb, var(--signal) 44%, transparent);
@@ -1551,7 +1553,16 @@ h1 {
   background: color-mix(in srgb, var(--signal) 9%, transparent);
   color: var(--text);
   font-size: 14px;
-  line-height: 1.4;
+  line-height: 1.45;
+}
+
+.quiz-fill-answer strong {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.quiz-fill-answer span {
+  color: var(--muted);
 }
 
 .quiz-question-card footer {
