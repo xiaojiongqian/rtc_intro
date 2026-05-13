@@ -22,13 +22,22 @@ type QuestionResult = {
 const questionScore = (question: QuizQuestion) =>
   question.type === "single-choice" ? 1 : 2;
 
+const stripNonDecimalDots = (value: string) =>
+  value.replace(/\./g, (dot, index, source) => {
+    const previous = source[index - 1] ?? "";
+    const next = source[index + 1] ?? "";
+    return /\d/.test(previous) && /\d/.test(next) ? dot : "";
+  });
+
 const normalizeAnswer = (value: string) =>
-  value
-    .normalize("NFKC")
-    .trim()
-    .toLowerCase()
-    .replace(/[，。、“”‘’：；？！,.!?;:()[\]{}<>《》【】\-_/\\|]/g, "")
-    .replace(/\s+/g, "");
+  stripNonDecimalDots(
+    value
+      .normalize("NFKC")
+      .trim()
+      .toLowerCase()
+      .replace(/[，。、“”‘’：；？！,!?;:()[\]{}<>《》【】\-_/\\|]/g, "")
+      .replace(/\s+/g, ""),
+  );
 
 const gradeQuestion = (
   question: QuizQuestion,
@@ -438,7 +447,7 @@ export function QuizShell() {
                           onChange={(event) =>
                             updateAnswer(question.id, event.currentTarget.value)
                           }
-                          placeholder="输入关键词或短语"
+                          placeholder="输入关键词、缩写或数值"
                           type="text"
                           value={answers[question.id] ?? ""}
                         />
