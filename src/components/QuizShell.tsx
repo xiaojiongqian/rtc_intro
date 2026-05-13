@@ -20,7 +20,7 @@ type QuestionResult = {
 };
 
 const questionScore = (question: QuizQuestion) =>
-  question.type === "single-choice" ? 1 : 2;
+  question.type === "single-choice" ? 1 : 3;
 
 const stripNonDecimalDots = (value: string) =>
   value.replace(/\./g, (dot, index, source) => {
@@ -245,7 +245,7 @@ export function QuizShell() {
         <div className="quiz-title-block">
           <p>RTC Core Theory Quiz</p>
           <h1>实时通信核心技术自测</h1>
-          <span>60 道选择题 + 20 道填空题，满分 100 分</span>
+          <span>70 道选择题 + 10 道填空题，满分 100 分</span>
         </div>
         <div className="quiz-scoreboard" aria-label="Score overview">
           <article>
